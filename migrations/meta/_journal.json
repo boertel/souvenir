@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1706737980302,
+      "tag": "0000_moaning_alex_wilder",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1706738873709,
+      "tag": "0001_unique_meggan",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1706758080260,
+      "tag": "0002_peaceful_moondragon",
+      "breakpoints": true
+    }
+  ]
+}
