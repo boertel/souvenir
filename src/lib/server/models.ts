@@ -1,7 +1,9 @@
 import { nanoid } from 'nanoid';
 import { db } from './db/db';
-import { and, eq, isNull, sql } from 'drizzle-orm';
-import { schema, type Entry, type NewEntry } from './db/schema';
+import { and, eq, sql } from 'drizzle-orm';
+import { schema, type EntryWithChildren, type Entry, type NewEntry } from './db/schema';
+import { generateId } from 'lucia';
+import { Argon2id } from 'oslo/password';
 
 export async function requireEntry(entryId: string, userId: string): Promise<Entry> {
 	const entry = await db.query.entry.findFirst({
@@ -16,13 +18,13 @@ export async function requireEntry(entryId: string, userId: string): Promise<Ent
 }
 
 export async function createEntry({
+	id,
 	content,
 	userId,
 	parentId
-}: Pick<NewEntry, 'content' | 'userId' | 'parentId'>): Promise<Entry> {
-	const entryId = nanoid();
+}: Pick<NewEntry, 'id' | 'content' | 'userId' | 'parentId'>): Promise<Entry> {
 	const data = {
-		id: entryId,
+		id,
 		content,
 		parentId,
 		userId
@@ -31,10 +33,39 @@ export async function createEntry({
 	return entries[0];
 }
 
-export async function findEntries(userId: string): Promise<Entry[]> {
-	return db.query.entry.findMany({
-		where: and(eq(schema.entry.userId, userId), isNull(schema.entry.childId))
+export async function findEntries(userId: string): Promise<EntryWithChildren[]> {
+	const entries = (await db.query.entry.findMany({
+		where: and(eq(schema.entry.userId, userId))
+	})) as EntryWithChildren[];
+
+	const entriesById: Map<string, EntryWithChildren> = new Map(
+		entries.map((entry) => [entry.id, entry])
+	);
+
+	const entriesWithChildren: EntryWithChildren[] = [];
+	entries.forEach((entry) => {
+		if (entry.childId === null) {
+			findChild(entriesById, entry, entry);
+			entriesWithChildren.push(entry);
+		}
 	});
+
+	return entriesWithChildren;
+}
+
+function findChild(
+	entriesById: Map<string, EntryWithChildren>,
+	root: EntryWithChildren,
+	entry: EntryWithChildren
+) {
+	if (entry.parentId) {
+		const child = entriesById.get(entry.parentId);
+		if (child) {
+			findChild(entriesById, root, child);
+			root.children ??= [];
+			root.children.push(child);
+		}
+	}
 }
 
 export async function updateEntry(
@@ -45,6 +76,7 @@ export async function updateEntry(
 	await requireEntry(entryId, userId);
 
 	const newEntry = await createEntry({
+		id: nanoid(),
 		content,
 		userId,
 		parentId: entryId
@@ -78,4 +110,14 @@ export async function togglePinEntry(entryId: string, userId: string): Promise<v
 		.update(schema.entry)
 		.set(data)
 		.where(and(eq(schema.entry.id, entryId), eq(schema.entry.userId, userId)));
+}
+
+export async function createUser({ username, password }: { username: string; password: string }) {
+	const userId = generateId(15);
+	const hashedPassword = await new Argon2id().hash(password);
+	await db.insert(schema.user).values({ id: userId, username, hashedPassword }).returning();
+	return {
+		id: userId,
+		username
+	};
 }

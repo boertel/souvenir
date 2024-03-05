@@ -3,28 +3,9 @@ import { sqliteTable, integer, text, unique } from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('user', {
 	id: text('id').notNull().primaryKey(),
-	email: text('email').notNull().unique()
+	username: text('username').notNull().unique(),
+	hashedPassword: text('hashed_password').notNull()
 });
-
-export const account = sqliteTable(
-	'account',
-	{
-		id: text('id').notNull().primaryKey(),
-		provider: text('provider').notNull(),
-		providerAccountId: text('provider_account_id').notNull(),
-		accessToken: text('access_token'),
-		refreshToken: text('refresh_token'),
-		expiresAt: integer('expires_at'),
-		tokenType: text('token_type'),
-		scope: text('scope'),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id)
-	},
-	(t) => ({
-		unique: unique().on(t.provider, t.providerAccountId)
-	})
-);
 
 export const session = sqliteTable('session', {
 	id: text('id').notNull().primaryKey(),
@@ -54,6 +35,8 @@ export const entry = sqliteTable('entry', {
 export type Entry = typeof entry.$inferSelect; // return type when queried
 export type NewEntry = typeof entry.$inferInsert; // return type when queried
 
+export type EntryWithChildren = Entry & { children: Entry[] };
+
 export const entryRelations = relations(entry, ({ one }) => ({
 	parent: one(entry, {
 		fields: [entry.parentId],
@@ -68,6 +51,5 @@ export const entryRelations = relations(entry, ({ one }) => ({
 export const schema = {
 	session,
 	user,
-	account,
 	entry
 };

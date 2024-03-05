@@ -27,6 +27,7 @@ export function markdownToHtml(content: string): Promise<any> {
 			.use(renderColorHex)
 			// HTML AST -> HTML AST transforms
 			.use(updateCheckbox)
+			.use(updateLink)
 			.use(rehypeStringify)
 			.process(content)
 	);
@@ -76,6 +77,36 @@ export function updateCheckbox() {
 				// node.properties.className = 'bg-red-500 w-2 h-2 appearance-none';
 				// not perfect but works
 				node.properties.name = parentNode.position.start.line;
+			}
+		});
+	};
+}
+
+export function updateLink() {
+	return (tree) => {
+		visit(tree, 'element', (node, _, parentNode) => {
+			if (node.tagName === 'a' && node.properties?.href?.startsWith('http')) {
+				const { href } = node.properties;
+				const url = new URL(href);
+				const hashParams = new URLSearchParams(url.hash.substring(1));
+				if (hashParams.has(':~:text')) {
+					const quote = hashParams.get(':~:text');
+					const urlWithoutQuote = url;
+					hashParams.delete(':~:text');
+					urlWithoutQuote.hash = hashParams.size > 0 ? `#${hashParams}` : '';
+					parentNode.tagName = 'div';
+					parentNode.children = [
+						h('blockquote', quote),
+						h(
+							'a',
+							{ href: href, target: '_blank', rel: 'noopener noreferrer' },
+							urlWithoutQuote.toString()
+						)
+					];
+				} else {
+					node.properties.target = '_blank';
+					node.properties.rel = 'noopener noreferrer';
+				}
 			}
 		});
 	};

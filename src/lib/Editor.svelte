@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { browser, building, dev, version } from '$app/environment';
+	import { browser } from '$app/environment';
 	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 
 	import { oneDark } from '@codemirror/theme-one-dark';
-	import { basicSetup } from 'codemirror';
 	import { EditorView, keymap, placeholder as placeholderExtension } from '@codemirror/view';
-	import { EditorState, StateEffect, type Extension } from '@codemirror/state';
+	import { EditorState, type Extension } from '@codemirror/state';
 	import { indentWithTab } from '@codemirror/commands';
-	import { indentUnit, type LanguageSupport } from '@codemirror/language';
+	import { indentUnit } from '@codemirror/language';
 	import { markdown } from '@codemirror/lang-markdown';
 
 	const dispatch = createEventDispatcher();
@@ -15,6 +14,8 @@
 	let element: HTMLDivElement;
 	let view: EditorView;
 
+	let className: string = '';
+	export { className as class };
 	export let defaultValue = '';
 	let value = defaultValue;
 
@@ -30,6 +31,7 @@
 			if (evt.metaKey && evt.key === 'Enter') {
 				evt.preventDefault();
 				dispatch('keydown', evt);
+				view.setState(createEditorState(''));
 			}
 		}
 	});
@@ -67,7 +69,7 @@
 
 	function createEditorState(value: string | null | undefined): EditorState {
 		return EditorState.create({
-			doc: defaultValue ?? undefined,
+			doc: value ?? defaultValue ?? undefined,
 			extensions
 		});
 	}
@@ -84,17 +86,19 @@
 
 	onMount(() => (view = createEditorView()));
 	onDestroy(() => view?.destroy());
+
+	/*
 	function onWindowKeyDown(evt) {
+    // FIXME: only for the main form
 		if (evt.key === 'i') {
 			evt.prefentDefault();
 			view.focus();
 		}
 	}
+  */
 </script>
 
-<svelte:window on:keydown={onWindowKeyDown} />
-
 {#if browser}
-	<div bind:this={element} class="" />
+	<div bind:this={element} class={className} />
 	<input type="hidden" name="content" {value} />
 {/if}

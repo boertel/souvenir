@@ -1,1 +1,0 @@
-ALTER TABLE entry ADD `parent_id` text;

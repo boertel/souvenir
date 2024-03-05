@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1708469021976,
-      "tag": "0000_ambiguous_ulik",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1708558725846,
-      "tag": "0001_slow_squadron_sinister",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1708582206776,
-      "tag": "0002_superb_typhoid_mary",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1708641622209,
-      "tag": "0003_white_azazel",
+      "when": 1709610086157,
+      "tag": "0000_dizzy_the_initiative",
       "breakpoints": true
     }
   ]

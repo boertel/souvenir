@@ -6,13 +6,18 @@
 	import EditIcon from '$icons/EditIcon.svelte';
 	import DeleteIcon from '$icons/DeleteIcon.svelte';
 	import PinIcon from '$icons/PinIcon.svelte';
-	import { format } from 'date-fns';
+	import { dayjs } from '$lib/dayjs';
 	import EntryActionButton from './EntryActionButton.svelte';
 	import EntryContent from './EntryContent.svelte';
+	import { updateEntry, removeEntry } from '$lib/store';
+	import type { Entry } from './server/db/schema';
 
 	function onWindowKeyDown(evt) {
 		if (evt.key === 'Escape' && isEditing) {
 			isEditing = false;
+		}
+		if (isFocus && evt.key === 'e') {
+			isEditing = true;
 		}
 	}
 
@@ -22,93 +27,112 @@
 		const { key, metaKey } = evt.detail;
 		if (key === 'Enter' && metaKey) {
 			evt.preventDefault();
-			form.submit();
+			form.requestSubmit();
+			isEditing = false;
 		}
 	}
 
 	export let entry: {
 		id: string;
 		content: string;
+		html: string;
 		createdAt: Date;
 		parentId?: string;
 		childId?: string;
+		children?: Entry;
 	};
 	export let isSame: boolean;
+	export let isFocus: boolean;
 
 	let isEditing = false;
+
+	function formatCreatedAt(format: string): string {
+		// TODO fix it
+		let tz = 'America/Los_Angeles';
+		return dayjs.utc(entry.createdAt).tz(tz).format(format);
+	}
 </script>
 
 <svelte:window on:keydown={onWindowKeyDown} />
 
-<li
+<div class="col-start-1 py-2 text-right font-mono text-xs text-stone-500">
+	{#if !isSame}
+		<time class="text-right">{formatCreatedAt('MMM Do')}</time>
+		<span class="opacity-0 transition-all group-hover:opacity-100"> at </span>
+	{/if}
+	<time class="opacity-0 transition-all group-hover:opacity-100">{formatCreatedAt('HH:mm')}</time>
+</div>
+<div
 	class={cn(
-		'group col-span-3 grid grid-cols-subgrid gap-2',
-		!isSame ? 'border-t border-stone-600 pt-4' : null,
-		'first:border-0',
-		'last:mb-8'
+		'col-start-2 col-end-2',
+		'relative',
+		entry.parentId &&
+			'before:absolute before:bottom-0 before:left-[6px] before:right-[6px] before:top-0 before:z-[-1] before:translate-y-[3px] before:rounded-md before:border before:border-stone-400 before:border-opacity-30 before:bg-background',
+		entry.parentId &&
+			'after:absolute after:bottom-0 after:left-[12px] after:right-[12px] after:top-0 after:z-[-2] after:translate-y-[6px] after:rounded-md after:border after:border-stone-400 after:border-opacity-30 after:bg-background'
 	)}
 >
-	<div class="stify-end col-start-1 mt-1 py-2 text-right text-sm text-stone-500">
-		{#if !isSame}
-			<time class="text-right">{format(entry.createdAt, 'MMM do')}</time>
-			<span class="opacity-0 transition-all group-hover:opacity-100"> at </span>
-		{/if}
-		<time class="opacity-0 transition-all group-hover:opacity-100"
-			>{format(entry.createdAt, 'HH:mm')}</time
-		>
-	</div>
 	<div
 		class={cn(
-			'col-start-2 col-end-2 rounded-md border border-transparent',
-			isEditing && 'border-stone-500',
-			'relative',
-			entry.parentId &&
-				'before:absolute before:bottom-0 before:left-[6px] before:right-[6px] before:top-0 before:z-[-1] before:translate-y-[3px] before:rounded-md before:border before:border-stone-400 before:border-opacity-30 before:bg-background',
-			entry.parentId &&
-				'after:absolute after:bottom-0 after:left-[12px] after:right-[12px] after:top-0 after:z-[-2] after:translate-y-[6px] after:rounded-md after:border after:border-stone-400 after:border-opacity-30 after:bg-background'
+			'rounded-md border border-transparent bg-[#262625] px-4 py-2',
+			isFocus && 'border-primary',
+			isEditing && 'border-stone-500'
 		)}
 	>
-		<div class="rounded-md bg-[#262625] px-4 py-2">
-			{#if isEditing}
-				<form use:enhance method="POST" action="?/edit" bind:this={form} data-sveltekit-noscroll>
-					<input type="hidden" name="id" value={entry.id} />
-					<Editor defaultValue={entry.content} on:keydown={onkeydown} />
-				</form>
-			{:else}
-				<EntryContent entryId={entry.id} content={entry.content} />
-			{/if}
-		</div>
+		{#if isEditing}
+			<form
+				method="POST"
+				action="?/edit"
+				use:enhance={({ formData }) => {
+					updateEntry(entry.id, { content: formData.get('content') });
+				}}
+				bind:this={form}
+				data-sveltekit-noscroll
+			>
+				<input type="hidden" name="id" value={entry.id} />
+				<Editor defaultValue={entry.content} on:keydown={onkeydown} />
+			</form>
+		{:else}
+			<EntryContent entryId={entry.id} html={entry.html} />
+		{/if}
 	</div>
-	<aside
-		class={cn(
-			'col-start-3 mt-[1px]',
-			'w-min',
-			'grid auto-rows-min grid-cols-[repeat(3,_1fr)] items-center gap-1',
-			'text-stone-500 opacity-0 transition-opacity group-hover:opacity-100',
-			isEditing && 'opacity-100'
-		)}
-	>
-		<form method="POST" action="?/pin" use:enhance class="flex">
-			<input type="hidden" name="id" value={entry.id} />
-			<EntryActionButton>
-				<PinIcon />
-			</EntryActionButton>
-		</form>
-		<EntryActionButton on:click={() => (isEditing = !isEditing)}>
-			<EditIcon />
+</div>
+<aside
+	class={cn(
+		'col-start-3 py-2',
+		'w-min',
+		'grid auto-rows-min grid-cols-[repeat(3,_1fr)] items-center gap-1',
+		'text-stone-500 opacity-0 transition-opacity group-hover:opacity-100',
+		isEditing && 'opacity-100'
+	)}
+>
+	<form method="POST" action="?/pin" use:enhance class="flex">
+		<input type="hidden" name="id" value={entry.id} />
+		<EntryActionButton>
+			<PinIcon />
 		</EntryActionButton>
-		<form method="POST" action="?/remove" use:enhance class="flex">
-			<input type="hidden" name="id" value={entry.id} />
-			<EntryActionButton style="--current-color: var(--destructive)">
-				<DeleteIcon />
-			</EntryActionButton>
-		</form>
+	</form>
+	<EntryActionButton on:click={() => (isEditing = !isEditing)}>
+		<EditIcon />
+	</EntryActionButton>
+	<form
+		method="POST"
+		action="?/remove"
+		use:enhance={() => {
+			removeEntry(entry.id);
+		}}
+		class="flex"
+	>
+		<input type="hidden" name="id" value={entry.id} />
+		<EntryActionButton style="--current-color: var(--destructive)">
+			<DeleteIcon />
+		</EntryActionButton>
+	</form>
 
-		<!--EntryActionButton>
+	<!--EntryActionButton>
 			<RepetitionIcon />
 		</EntryActionButton-->
-	</aside>
-</li>
+</aside>
 
 <style>
 	:global(code) {
@@ -117,6 +141,7 @@
 		margin: 0 0.4em;
 		@apply before:absolute before:bottom-[-3px] before:left-[-6px] before:right-[-6px] before:top-[-3px] before:z-[-1] before:rounded-sm before:bg-black before:bg-opacity-80;
 		font-size: 0.75em;
+		white-space: pre;
 	}
 	:global(a) {
 		text-decoration: underline;

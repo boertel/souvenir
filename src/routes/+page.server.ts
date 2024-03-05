@@ -1,7 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { lucia } from '$lib/server/auth';
-import { db } from '$lib/server/db/db';
-import { markdownToAst, checkbox } from '$lib/markdown';
+import { markdownToAst, checkbox, markdownToHtml } from '$lib/markdown';
 import remarkStringify from 'remark-stringify';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -13,6 +11,7 @@ import {
 	requireEntry,
 	findEntries
 } from '$lib/server/models';
+import type { Entry } from '$lib/server/db/schema';
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user?.id) {
@@ -21,9 +20,18 @@ export const load: PageServerLoad = async (event) => {
 
 	const entries = await findEntries(event.locals.user.id);
 
+	async function renderHtml(entry: Entry): Promise<Entry & { html: string }> {
+		return {
+			...entry,
+			html: String(await markdownToHtml(entry.content))
+		};
+	}
+
+	const promises = entries.map(renderHtml);
+
 	return {
 		user: event.locals.user,
-		entries
+		entries: await Promise.all(promises)
 	};
 };
 
@@ -45,7 +53,10 @@ export const actions = {
 		const entry = await requireEntry(entryId, locals.user.id);
 
 		const content = String(
-			await markdownToAst().use(checkbox(checks)).use(remarkStringify).process(entry.content)
+			await markdownToAst()
+				.use(checkbox(checks))
+				.use(remarkStringify, { bullet: '-' })
+				.process(entry.content)
 		);
 
 		await updateEntry(entryId, locals.user.id, { content });
@@ -96,25 +107,16 @@ export const actions = {
 
 		const data = await request.formData();
 		const content = data.get('content') as string;
+		const id = data.get('id') as string;
 
 		if (content) {
-			await createEntry({
+			const entry = await createEntry({
+				id,
 				content,
 				userId: locals.user.id
 			});
-		}
-	},
-	logout: async ({ cookies, locals }) => {
-		if (!locals.session) {
-			return fail(401);
-		}
-		await lucia.invalidateSession(locals.session.id);
-		const sessionCookie = lucia.createBlankSessionCookie();
-		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
 
-		return redirect(302, '/auth');
+			return { entry };
+		}
 	}
 } satisfies Actions;
