@@ -20,18 +20,9 @@ export const load: PageServerLoad = async (event) => {
 
 	const entries = await findEntries(event.locals.user.id);
 
-	async function renderHtml(entry: Entry): Promise<Entry & { html: string }> {
-		return {
-			...entry,
-			html: String(await markdownToHtml(entry.content))
-		};
-	}
-
-	const promises = entries.map(renderHtml);
-
 	return {
 		user: event.locals.user,
-		entries: await Promise.all(promises)
+		entries
 	};
 };
 

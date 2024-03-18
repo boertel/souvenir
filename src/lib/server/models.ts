@@ -1,9 +1,10 @@
 import { nanoid } from 'nanoid';
 import { db } from './db/db';
 import { and, eq, sql } from 'drizzle-orm';
-import { schema, type EntryWithChildren, type Entry, type NewEntry } from './db/schema';
+import { schema, type Entry, type NewEntry } from './db/schema';
 import { generateId } from 'lucia';
 import { Argon2id } from 'oslo/password';
+import { markdownToHtml } from '$lib/markdown';
 
 export async function requireEntry(entryId: string, userId: string): Promise<Entry> {
 	const entry = await db.query.entry.findFirst({
@@ -33,16 +34,17 @@ export async function createEntry({
 	return entries[0];
 }
 
-export async function findEntries(userId: string): Promise<EntryWithChildren[]> {
-	const entries = (await db.query.entry.findMany({
+export async function findEntries(userId: string): Promise<Entry[]> {
+	const entriesWithoutHtml = await db.query.entry.findMany({
 		where: and(eq(schema.entry.userId, userId))
-	})) as EntryWithChildren[];
+	});
 
-	const entriesById: Map<string, EntryWithChildren> = new Map(
-		entries.map((entry) => [entry.id, entry])
-	);
+	const promises = entriesWithoutHtml.map(renderHtml);
+	const entries = await Promise.all(promises);
 
-	const entriesWithChildren: EntryWithChildren[] = [];
+	const entriesById: Map<string, Entry> = new Map(entries.map((entry) => [entry.id, entry]));
+
+	const entriesWithChildren: Entry[] = [];
 	entries.forEach((entry) => {
 		if (entry.childId === null) {
 			findChild(entriesById, entry, entry);
@@ -53,11 +55,14 @@ export async function findEntries(userId: string): Promise<EntryWithChildren[]> 
 	return entriesWithChildren;
 }
 
-function findChild(
-	entriesById: Map<string, EntryWithChildren>,
-	root: EntryWithChildren,
-	entry: EntryWithChildren
-) {
+async function renderHtml(entry: Entry): Promise<Entry & { html: string }> {
+	return {
+		...entry,
+		html: String(await markdownToHtml(entry.content))
+	};
+}
+
+function findChild(entriesById: Map<string, Entry>, root: Entry, entry: Entry) {
 	if (entry.parentId) {
 		const child = entriesById.get(entry.parentId);
 		if (child) {

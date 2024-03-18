@@ -32,10 +32,8 @@ export const entry = sqliteTable('entry', {
 		.default(sql`(datetime('now'))`)
 });
 
-export type Entry = typeof entry.$inferSelect; // return type when queried
+export type Entry = typeof entry.$inferSelect & { children?: Entry[]; html?: string }; // return type when queried
 export type NewEntry = typeof entry.$inferInsert; // return type when queried
-
-export type EntryWithChildren = Entry & { children: Entry[] };
 
 export const entryRelations = relations(entry, ({ one }) => ({
 	parent: one(entry, {

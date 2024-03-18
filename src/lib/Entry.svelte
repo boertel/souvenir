@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { cn } from '$lib/utils';
 	import Editor from '$lib/Editor.svelte';
-	import RepetitionIcon from '$icons/Repetition.svelte';
+	import ExpandIcon from '$icons/ExpandIcon.svelte';
 	import EditIcon from '$icons/EditIcon.svelte';
 	import DeleteIcon from '$icons/DeleteIcon.svelte';
 	import PinIcon from '$icons/PinIcon.svelte';
@@ -11,6 +11,7 @@
 	import EntryContent from './EntryContent.svelte';
 	import { updateEntry, removeEntry } from '$lib/store';
 	import type { Entry } from './server/db/schema';
+	import MinimizeIcon from '$icons/MinimizeIcon.svelte';
 
 	function onWindowKeyDown(evt) {
 		if (evt.key === 'Escape' && isEditing) {
@@ -32,19 +33,12 @@
 		}
 	}
 
-	export let entry: {
-		id: string;
-		content: string;
-		html: string;
-		createdAt: Date;
-		parentId?: string;
-		childId?: string;
-		children?: Entry;
-	};
+	export let entry: Entry;
 	export let isSame: boolean;
 	export let isFocus: boolean;
 
 	let isEditing = false;
+	let showChildren = false;
 
 	function formatCreatedAt(format: string): string {
 		// TODO fix it
@@ -62,22 +56,19 @@
 	{/if}
 	<time class="opacity-0 transition-all group-hover:opacity-100">{formatCreatedAt('HH:mm')}</time>
 </div>
-<div
-	class={cn(
-		'col-start-2 col-end-2',
-		'relative',
-		entry.parentId &&
-			'before:absolute before:bottom-0 before:left-[6px] before:right-[6px] before:top-0 before:z-[-1] before:translate-y-[3px] before:rounded-md before:border before:border-stone-400 before:border-opacity-30 before:bg-background',
-		entry.parentId &&
-			'after:absolute after:bottom-0 after:left-[12px] after:right-[12px] after:top-0 after:z-[-2] after:translate-y-[6px] after:rounded-md after:border after:border-stone-400 after:border-opacity-30 after:bg-background'
-	)}
->
+<div class={cn('col-start-2 col-end-2', 'relative')}>
 	<div
 		class={cn(
 			'rounded-md border border-transparent bg-[#262625] px-4 py-2',
 			isFocus && 'border-primary',
 			isEditing && 'border-stone-500'
 		)}
+		role="button"
+		on:click={() => {
+			if (!isEditing) {
+				showChildren = !showChildren;
+			}
+		}}
 	>
 		{#if isEditing}
 			<form
@@ -96,6 +87,26 @@
 			<EntryContent entryId={entry.id} html={entry.html} />
 		{/if}
 	</div>
+	<ul class={cn('flex flex-col gap-2')}>
+		{#each entry.children || [] as child, idx}
+			<li
+				class={cn(
+					showChildren
+						? 'rounded-md border border-transparent bg-[#262625] px-4 py-2 first:mt-2'
+						: 'absolute inset-0 overflow-hidden rounded-md border border-stone-400 border-opacity-30 bg-[#202020]'
+				)}
+				style={showChildren
+					? `transition-property: transform; transition-duration: .2s; transition-timing-function: ease-in-out;`
+					: `transition-property: transform; transition-duration: .2s; transition-timing-function: ease-in-out; z-index: -${idx + 1}; transform: translateY(${(idx + 1) * 0.3}rem) scale(${1 - (idx + 1) * 0.02});`}
+			>
+				<EntryContent
+					entryId={child.id}
+					html={child.html}
+					class={cn('transition-opacity', showChildren ? 'opacity-100' : 'opacity-0')}
+				/>
+			</li>
+		{/each}
+	</ul>
 </div>
 <aside
 	class={cn(
@@ -106,12 +117,17 @@
 		isEditing && 'opacity-100'
 	)}
 >
-	<form method="POST" action="?/pin" use:enhance class="flex">
+	<!--form method="POST" action="?/pin" use:enhance class="flex">
 		<input type="hidden" name="id" value={entry.id} />
 		<EntryActionButton>
 			<PinIcon />
 		</EntryActionButton>
-	</form>
+	</form-->
+	{#if entry.children}
+		<EntryActionButton on:click={() => (showChildren = !showChildren)}>
+			{#if showChildren}<MinimizeIcon />{:else}<ExpandIcon />{/if}
+		</EntryActionButton>
+	{/if}
 	<EntryActionButton on:click={() => (isEditing = !isEditing)}>
 		<EditIcon />
 	</EntryActionButton>
@@ -135,6 +151,11 @@
 </aside>
 
 <style>
+	:global(pre) {
+		margin: 0.4em 0;
+		position: relative;
+		z-index: 1;
+	}
 	:global(code) {
 		position: relative;
 		z-index: 1;
@@ -143,6 +164,11 @@
 		font-size: 0.75em;
 		white-space: pre;
 	}
+	:global(pre > code) {
+		display: block;
+		position: static;
+	}
+
 	:global(a) {
 		text-decoration: underline;
 	}
