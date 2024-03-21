@@ -49,7 +49,8 @@
 			},
 			'.cm-content': {
 				fontFamily: 'ui-sans-serif, system-ui',
-				padding: 0
+				padding: 0,
+				caretColor: 'hsl(var(--primary))'
 			},
 			'.cm-line': {
 				padding: 0

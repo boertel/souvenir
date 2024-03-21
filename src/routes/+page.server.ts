@@ -11,11 +11,10 @@ import {
 	requireEntry,
 	findEntries
 } from '$lib/server/models';
-import type { Entry } from '$lib/server/db/schema';
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user?.id) {
-		return redirect(302, '/auth');
+		return redirect(302, '/login');
 	}
 
 	const entries = await findEntries(event.locals.user.id);

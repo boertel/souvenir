@@ -41,7 +41,7 @@
       --background: 0 0% 9%;
       --foreground: 60 5% 96%;
   
-      --muted: 217.2 32.6% 17.5%;
+      --muted: 219 5% 49%;
       --muted-foreground: 215 20.2% 65.1%;
   
       --popover: 222.2 84% 4.9%;
@@ -65,7 +65,7 @@
       --destructive: 0 62.8% 30.6%;
       --destructive-foreground: 210 40% 98%;
   
-      --ring: hsl(24, 6%, 83%);
+      --ring: 24, 6%, 83%;
     }
   }
 }
@@ -78,6 +78,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+@font-face {
+  font-family: 'Gambarino-Regular';
+  src: url('/fonts/Gambarino-Regular.woff2') format('woff2'),
+       url('/fonts/Gambarino-Regular.woff') format('woff'),
+       url('/fonts/Gambarino-Regular.ttf') format('truetype');
+       font-weight: 400;
+       font-display: swap;
+       font-style: normal;
+}
+
 
 html, body {
   height: 100%;
