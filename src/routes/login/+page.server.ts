@@ -1,7 +1,7 @@
 import { lucia } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';
-import { Argon2id } from 'oslo/password';
+import { verifyPassword } from '$lib/server/models';
 
 import type { Actions } from './$types';
 
@@ -19,7 +19,8 @@ export const actions: Actions = {
 			return fail(400, { message: 'Invalid username or password' });
 		}
 
-		const validPassword = new Argon2id().verify(existingUser.hashedPassword, password);
+		const validPassword = await verifyPassword(existingUser.hashedPassword, password);
+		console.log(validPassword);
 		if (!validPassword) {
 			return fail(400, { message: 'Invalid username or password' });
 		}

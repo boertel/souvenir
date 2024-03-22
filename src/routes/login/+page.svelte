@@ -23,6 +23,6 @@
 			<p>Password</p>
 			<Input autocomplete="off" type="password" name="password" />
 		</label>
-		<Button>Login</Button>
+		<Button type="submit">Login</Button>
 	</form>
 </main>

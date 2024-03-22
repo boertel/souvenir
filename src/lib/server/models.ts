@@ -3,7 +3,6 @@ import { db } from './db/db';
 import { and, eq, sql } from 'drizzle-orm';
 import { schema, type Entry, type NewEntry } from './db/schema';
 import { generateId } from 'lucia';
-import { Argon2id } from 'oslo/password';
 import { markdownToHtml } from '$lib/markdown';
 
 export async function requireEntry(entryId: string, userId: string): Promise<Entry> {
@@ -119,10 +118,23 @@ export async function togglePinEntry(entryId: string, userId: string): Promise<v
 
 export async function createUser({ username, password }: { username: string; password: string }) {
 	const userId = generateId(15);
-	const hashedPassword = await new Argon2id().hash(password);
+	const hashedPassword = await digestPassword(password);
 	await db.insert(schema.user).values({ id: userId, username, hashedPassword }).returning();
 	return {
 		id: userId,
 		username
 	};
+}
+
+async function digestPassword(raw: string): Promise<string> {
+	const data = new TextEncoder().encode(raw);
+	const hashBuffer = await crypto.subtle.digest({ name: 'SHA-256' }, data);
+	const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+	const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+	return hashHex;
+}
+
+export async function verifyPassword(hashPassword: string, rawPassword: string): Promise<boolean> {
+	const hashed = await digestPassword(rawPassword);
+	return hashed === hashPassword;
 }
