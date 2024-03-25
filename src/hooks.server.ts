@@ -1,7 +1,15 @@
-import { lucia } from '$lib/server/auth';
+import { initializeLucia } from '$lib/server/auth';
 import type { Handle } from '@sveltejs/kit';
+import { drizzle } from 'drizzle-orm/d1';
+import { schema } from '$lib/server/db/schema';
 
 export const handle: Handle = async ({ event, resolve }) => {
+	const lucia = initializeLucia(event.platform.env.DB);
+	const db = drizzle(event.platform.env.DB, { schema });
+
+	event.platform.lucia = lucia;
+	event.platform.db = db;
+
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
 	if (!sessionId) {
 		event.locals.user = null;
@@ -21,5 +29,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	event.locals.user = user;
 	event.locals.session = session;
+
 	return resolve(event);
 };

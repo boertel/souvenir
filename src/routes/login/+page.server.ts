@@ -1,13 +1,11 @@
-import { lucia } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db/db';
 import { verifyPassword } from '$lib/server/models';
 
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-	default: async (event) => {
-		const formData = await event.request.formData();
+	default: async ({ request, cookies, platform: { db, lucia } }) => {
+		const formData = await request.formData();
 		const username = formData.get('username') as string;
 		const password = formData.get('password') as string;
 
@@ -20,14 +18,13 @@ export const actions: Actions = {
 		}
 
 		const validPassword = await verifyPassword(existingUser.hashedPassword, password);
-		console.log(validPassword);
 		if (!validPassword) {
 			return fail(400, { message: 'Invalid username or password' });
 		}
 
 		const session = await lucia.createSession(existingUser.id, {});
 		const sessionCookie = lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
+		cookies.set(sessionCookie.name, sessionCookie.value, {
 			path: '.',
 			...sessionCookie.attributes
 		});

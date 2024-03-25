@@ -2,8 +2,11 @@
 	"name": "souvenir",
 	"version": "0.0.1",
 	"private": true,
+  "engines": {
+    "node": "==18.16"
+  },
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "wrangler pages dev --compatibility-date=2023-11-21 --proxy 5174 -- pnpm exec vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -17,6 +20,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-cloudflare": "^4.2.0",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@types/better-sqlite3": "^7.6.9",
@@ -43,16 +47,16 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@cloudflare/workers-types": "^4.20240320.1",
 		"@codemirror/commands": "^6.3.3",
 		"@codemirror/lang-markdown": "^6.2.4",
 		"@codemirror/language": "^6.10.1",
 		"@codemirror/state": "^6.4.1",
 		"@codemirror/theme-one-dark": "^6.1.2",
 		"@codemirror/view": "^6.24.1",
-		"@libsql/client": "^0.4.3",
 		"@lucia-auth/adapter-drizzle": "^1.0.0",
+		"@lucia-auth/adapter-sqlite": "^3.0.1",
 		"arctic": "^1.1.0",
-		"better-sqlite3": "^9.3.0",
 		"bits-ui": "^0.16.0",
 		"clsx": "^2.1.0",
 		"codemirror": "^6.0.1",
@@ -80,6 +84,7 @@
 		"tailwind-merge": "^2.2.1",
 		"tailwind-variants": "^0.1.20",
 		"unified": "^11.0.4",
-		"unist-util-visit": "^5.0.0"
+		"unist-util-visit": "^5.0.0",
+		"wrangler": "^3.36.0"
 	}
 }

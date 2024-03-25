@@ -1,27 +1,29 @@
 import { Lucia } from 'lucia';
-import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
+import { D1Adapter } from '@lucia-auth/adapter-sqlite';
+import type { D1Database } from '@cloudflare/workers-types';
+
 import { dev } from '$app/environment';
-import { db } from './db/db';
-import { schema } from './db/schema';
+import { schema, tables } from './db/schema';
 
-const adapter = new DrizzleSQLiteAdapter(db, schema.session, schema.user);
-
-export const lucia = new Lucia(adapter, {
-	sessionCookie: {
-		attributes: {
-			secure: !dev
+export function initializeLucia(D1: D1Database) {
+	const adapter = new D1Adapter(D1, tables);
+	return new Lucia(adapter, {
+		sessionCookie: {
+			attributes: {
+				secure: !dev
+			}
+		},
+		getUserAttributes: (attributes) => {
+			return {
+				username: attributes.username
+			};
 		}
-	},
-	getUserAttributes: (attributes) => {
-		return {
-			username: attributes.username
-		};
-	}
-});
+	});
+}
 
 declare module 'lucia' {
 	interface Register {
-		Lucia: typeof lucia;
+		Auth: ReturnType<typeof initializeLucia>;
 		DatabaseUserAttributes: Omit<typeof schema.user, 'id'>;
 	}
 }

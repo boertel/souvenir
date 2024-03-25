@@ -1,11 +1,10 @@
 import { nanoid } from 'nanoid';
-import { db } from './db/db';
 import { and, eq, sql } from 'drizzle-orm';
 import { schema, type Entry, type NewEntry } from './db/schema';
 import { generateId } from 'lucia';
 import { markdownToHtml } from '$lib/markdown';
 
-export async function requireEntry(entryId: string, userId: string): Promise<Entry> {
+export async function requireEntry(db, entryId: string, userId: string): Promise<Entry> {
 	const entry = await db.query.entry.findFirst({
 		where: and(eq(schema.entry.id, entryId), eq(schema.entry.userId, userId))
 	});
@@ -17,12 +16,10 @@ export async function requireEntry(entryId: string, userId: string): Promise<Ent
 	return entry;
 }
 
-export async function createEntry({
-	id,
-	content,
-	userId,
-	parentId
-}: Pick<NewEntry, 'id' | 'content' | 'userId' | 'parentId'>): Promise<Entry> {
+export async function createEntry(
+	db,
+	{ id, content, userId, parentId }: Pick<NewEntry, 'id' | 'content' | 'userId' | 'parentId'>
+): Promise<Entry> {
 	const data = {
 		id,
 		content,
@@ -33,7 +30,7 @@ export async function createEntry({
 	return entries[0];
 }
 
-export async function findEntries(userId: string): Promise<Entry[]> {
+export async function findEntries(db, userId: string): Promise<Entry[]> {
 	const entriesWithoutHtml = await db.query.entry.findMany({
 		where: and(eq(schema.entry.userId, userId))
 	});
@@ -73,13 +70,14 @@ function findChild(entriesById: Map<string, Entry>, root: Entry, entry: Entry) {
 }
 
 export async function updateEntry(
+	db,
 	entryId: string,
 	userId: string,
 	{ content }: { content: string }
 ): Promise<Entry> {
-	await requireEntry(entryId, userId);
+	await requireEntry(db, entryId, userId);
 
-	const newEntry = await createEntry({
+	const newEntry = await createEntry(db, {
 		id: nanoid(),
 		content,
 		userId,
@@ -94,13 +92,13 @@ export async function updateEntry(
 	return newEntry;
 }
 
-export async function removeEntry(entryId: string, userId: string): Promise<void> {
+export async function removeEntry(db, entryId: string, userId: string): Promise<void> {
 	await db
 		.delete(schema.entry)
 		.where(and(eq(schema.entry.id, entryId), eq(schema.entry.userId, userId)));
 }
 
-export async function togglePinEntry(entryId: string, userId: string): Promise<void> {
+export async function togglePinEntry(db, entryId: string, userId: string): Promise<void> {
 	const entry = await requireEntry(entryId, userId);
 
 	const data: { updatedAt: any; pinnedAt?: any } = { updatedAt: sql`datetime('now')` };
@@ -116,7 +114,10 @@ export async function togglePinEntry(entryId: string, userId: string): Promise<v
 		.where(and(eq(schema.entry.id, entryId), eq(schema.entry.userId, userId)));
 }
 
-export async function createUser({ username, password }: { username: string; password: string }) {
+export async function createUser(
+	db,
+	{ username, password }: { username: string; password: string }
+) {
 	const userId = generateId(15);
 	const hashedPassword = await digestPassword(password);
 	await db.insert(schema.user).values({ id: userId, username, hashedPassword }).returning();

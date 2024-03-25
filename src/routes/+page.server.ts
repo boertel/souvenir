@@ -12,21 +12,21 @@ import {
 	findEntries
 } from '$lib/server/models';
 
-export const load: PageServerLoad = async (event) => {
-	if (!event.locals.user?.id) {
+export const load: PageServerLoad = async ({ locals, platform: { db } }) => {
+	if (!locals.user?.id) {
 		return redirect(302, '/login');
 	}
 
-	const entries = await findEntries(event.locals.user.id);
+	const entries = await findEntries(db, locals.user.id);
 
 	return {
-		user: event.locals.user,
+		user: locals.user,
 		entries
 	};
 };
 
 export const actions = {
-	task: async ({ request, locals }) => {
+	task: async ({ request, platform: { db }, locals }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -40,7 +40,7 @@ export const actions = {
 		}
 
 		const entryId = id as string;
-		const entry = await requireEntry(entryId, locals.user.id);
+		const entry = await requireEntry(db, entryId, locals.user.id);
 
 		const content = String(
 			await markdownToAst()
@@ -49,9 +49,9 @@ export const actions = {
 				.process(entry.content)
 		);
 
-		await updateEntry(entryId, locals.user.id, { content });
+		await updateEntry(db, entryId, locals.user.id, { content });
 	},
-	pin: async ({ request, locals }) => {
+	pin: async ({ request, locals, platform: { db } }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -60,10 +60,10 @@ export const actions = {
 		const entryId = data.get('id') as string;
 
 		if (entryId) {
-			await togglePinEntry(entryId, locals.user.id);
+			await togglePinEntry(db, entryId, locals.user.id);
 		}
 	},
-	remove: async ({ request, locals }) => {
+	remove: async ({ request, locals, platform: { db } }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -72,10 +72,10 @@ export const actions = {
 		const entryId = data.get('id') as string;
 
 		if (entryId) {
-			await removeEntry(entryId, locals.user.id);
+			await removeEntry(db, entryId, locals.user.id);
 		}
 	},
-	edit: async ({ request, locals }) => {
+	edit: async ({ request, locals, platform: { db } }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -85,12 +85,12 @@ export const actions = {
 		const entryId = data.get('id') as string;
 
 		if (content) {
-			await updateEntry(entryId, locals.user.id, {
+			await updateEntry(db, entryId, locals.user.id, {
 				content
 			});
 		}
 	},
-	create: async ({ request, locals }) => {
+	create: async ({ request, locals, platform: { db } }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -100,7 +100,7 @@ export const actions = {
 		const id = data.get('id') as string;
 
 		if (content) {
-			const entry = await createEntry({
+			const entry = await createEntry(db, {
 				id,
 				content,
 				userId: locals.user.id

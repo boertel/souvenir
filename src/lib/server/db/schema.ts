@@ -51,3 +51,9 @@ export const schema = {
 	user,
 	entry
 };
+
+export const tables = {
+	session: 'session',
+	user: 'user',
+	entry: 'entry'
+};
