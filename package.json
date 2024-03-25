@@ -2,9 +2,9 @@
 	"name": "souvenir",
 	"version": "0.0.1",
 	"private": true,
-  "engines": {
-    "node": "==18.16"
-  },
+	"engines": {
+		"node": ">=18.16"
+	},
 	"scripts": {
 		"dev": "wrangler pages dev --compatibility-date=2023-11-21 --proxy 5174 -- pnpm exec vite dev",
 		"build": "vite build",
