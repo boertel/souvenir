@@ -9,6 +9,7 @@ export const actions: Actions = {
 		const username = formData.get('username') as string;
 		const password = formData.get('password') as string;
 
+		console.log(db);
 		const { id: userId } = await createUser(db, { username, password });
 
 		const session = await lucia.createSession(userId, {});
