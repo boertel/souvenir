@@ -15,14 +15,20 @@
 	</h2>
 
 	<form method="post" use:enhance class="mx-auto flex w-full max-w-sm flex-col gap-4">
+		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
 			<p>Username</p>
 			<Input autocomplete="off" type="text" name="username" />
 		</label>
+		<!-- svelte-ignore a11y-label-has-associated-control -->
 		<label>
 			<p>Password</p>
 			<Input autocomplete="off" type="password" name="password" />
 		</label>
 		<Button type="submit">Login</Button>
+		<p class="text-center">
+			Don't have an account?
+			<a href="/signup">Sign up</a>.
+		</p>
 	</form>
 </main>

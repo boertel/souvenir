@@ -4,12 +4,11 @@ import { createUser } from '$lib/server/models';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-	default: async ({ request, cookies, platform: { lucia, db } }) => {
+	default: async ({ request, cookies, locals: { lucia, db } }) => {
 		const formData = await request.formData();
 		const username = formData.get('username') as string;
 		const password = formData.get('password') as string;
 
-		console.log(db);
 		const { id: userId } = await createUser(db, { username, password });
 
 		const session = await lucia.createSession(userId, {});

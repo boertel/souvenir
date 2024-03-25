@@ -4,11 +4,15 @@ import { drizzle } from 'drizzle-orm/d1';
 import { schema } from '$lib/server/db/schema';
 
 export const handle: Handle = async ({ event, resolve }) => {
+	if (!event.platform) {
+		return resolve(event);
+	}
+
 	const lucia = initializeLucia(event.platform.env.DB);
 	const db = drizzle(event.platform.env.DB, { schema });
 
-	event.platform.lucia = lucia;
-	event.platform.db = db;
+	event.locals.lucia = lucia;
+	event.locals.db = db;
 
 	const sessionId = event.cookies.get(lucia.sessionCookieName);
 	if (!sessionId) {

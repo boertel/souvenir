@@ -4,7 +4,7 @@ import { verifyPassword } from '$lib/server/models';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-	default: async ({ request, cookies, platform: { db, lucia } }) => {
+	default: async ({ request, cookies, locals: { db, lucia } }) => {
 		const formData = await request.formData();
 		const username = formData.get('username') as string;
 		const password = formData.get('password') as string;

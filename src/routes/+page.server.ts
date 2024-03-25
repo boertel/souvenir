@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { markdownToAst, checkbox, markdownToHtml } from '$lib/markdown';
+import { markdownToAst, checkbox } from '$lib/markdown';
 import remarkStringify from 'remark-stringify';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -12,21 +12,21 @@ import {
 	findEntries
 } from '$lib/server/models';
 
-export const load: PageServerLoad = async ({ locals, platform: { db } }) => {
-	if (!locals.user?.id) {
+export const load: PageServerLoad = async ({ locals: { user, db } }) => {
+	if (!user?.id) {
 		return redirect(302, '/login');
 	}
 
-	const entries = await findEntries(db, locals.user.id);
+	const entries = await findEntries(db, user.id);
 
 	return {
-		user: locals.user,
+		user,
 		entries
 	};
 };
 
 export const actions = {
-	task: async ({ request, platform: { db }, locals }) => {
+	task: async ({ request, locals }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -40,7 +40,7 @@ export const actions = {
 		}
 
 		const entryId = id as string;
-		const entry = await requireEntry(db, entryId, locals.user.id);
+		const entry = await requireEntry(locals.db, entryId, locals.user.id);
 
 		const content = String(
 			await markdownToAst()
@@ -51,7 +51,7 @@ export const actions = {
 
 		await updateEntry(db, entryId, locals.user.id, { content });
 	},
-	pin: async ({ request, locals, platform: { db } }) => {
+	pin: async ({ request, locals }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -60,10 +60,10 @@ export const actions = {
 		const entryId = data.get('id') as string;
 
 		if (entryId) {
-			await togglePinEntry(db, entryId, locals.user.id);
+			await togglePinEntry(locals.db, entryId, locals.user.id);
 		}
 	},
-	remove: async ({ request, locals, platform: { db } }) => {
+	remove: async ({ request, locals }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -72,10 +72,10 @@ export const actions = {
 		const entryId = data.get('id') as string;
 
 		if (entryId) {
-			await removeEntry(db, entryId, locals.user.id);
+			await removeEntry(locals.db, entryId, locals.user.id);
 		}
 	},
-	edit: async ({ request, locals, platform: { db } }) => {
+	edit: async ({ request, locals }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -85,12 +85,12 @@ export const actions = {
 		const entryId = data.get('id') as string;
 
 		if (content) {
-			await updateEntry(db, entryId, locals.user.id, {
+			await updateEntry(locals.db, entryId, locals.user.id, {
 				content
 			});
 		}
 	},
-	create: async ({ request, locals, platform: { db } }) => {
+	create: async ({ request, locals }) => {
 		if (!locals.user?.id) {
 			return fail(401);
 		}
@@ -100,7 +100,7 @@ export const actions = {
 		const id = data.get('id') as string;
 
 		if (content) {
-			const entry = await createEntry(db, {
+			const entry = await createEntry(locals.db, {
 				id,
 				content,
 				userId: locals.user.id

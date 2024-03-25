@@ -7,12 +7,13 @@ declare global {
 				DB: D1Namespace;
 			};
 			caches: CacheStorage & { default: Cache };
-			lucia: import('lucia').Lucia;
 		}
 		// interface Error {}
 		interface Locals {
 			user: import('lucia').User | null;
 			session: import('lucia').Session | null;
+			lucia: import('lucia').Lucia;
+			db: import('drizzle-orm').Drizzle<typeof schema>;
 		}
 		// interface PageData {}
 		// interface PageState {}
