@@ -74,10 +74,10 @@
 <svelte:window on:keydown={onWindowKeyDown} />
 
 <main
-	class="mx-auto grid min-h-full w-full max-w-screen-lg grid-cols-[1fr_4fr_1fr] grid-rows-[min-content_1fr] px-6"
+	class="mx-auto grid min-h-full w-full max-w-screen-lg grid-cols-[1fr_2fr_2fr_1fr] grid-rows-[min-content_1fr] px-2 md:px-6"
 >
 	{#if browser}
-		<ul class={cn('col-span-3 grid grid-cols-subgrid py-4 transition-opacity duration-700')}>
+		<ul class={cn('col-span-4 grid grid-cols-subgrid py-4 transition-opacity duration-700')}>
 			{#each $entries as entry, idx (entry.id)}
 				{@const isSame = dayjs(entry.createdAt).isSame($entries[idx - 1]?.createdAt, 'date')}
 				{@const isFocus =
@@ -85,7 +85,7 @@
 				<li
 					transition:slide
 					class={cn(
-						'group col-span-3 my-2 grid grid-cols-subgrid gap-2',
+						'group col-span-4 my-2 grid grid-cols-subgrid gap-1 md:gap-2',
 						'first:border-0',
 						'last:mb-8',
 						'border-primary'
@@ -120,7 +120,8 @@
 		action="?/create"
 		class={cn(
 			'flex flex-col-reverse',
-			'sticky bottom-0 z-10 col-start-2 col-end-2 bg-background px-1 py-4',
+			'col-span-4 md:col-span-2 md:col-start-2',
+			'sticky bottom-0 z-10 bg-background py-4',
 			'before:absolute before:bottom-full before:left-0 before:right-0 before:h-[40px] before:bg-gradient-to-t before:from-background before:to-transparent'
 		)}
 	>

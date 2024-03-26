@@ -41,7 +41,7 @@
 	let showChildren = false;
 
 	function formatCreatedAt(format: string): string {
-		// TODO fix it
+		// FIXME: use user's timezone
 		let tz = 'America/Los_Angeles';
 		return dayjs.utc(entry.createdAt).tz(tz).format(format);
 	}
@@ -49,14 +49,22 @@
 
 <svelte:window on:keydown={onWindowKeyDown} />
 
-<div class="col-start-1 py-2 text-right font-mono text-xs text-stone-500">
+<div
+	class={cn(
+		'font-mono text-xs text-stone-500',
+		'col-span-2 row-start-1 py-0 md:col-span-1 md:row-start-auto md:py-2',
+		'text-left md:text-right'
+	)}
+>
 	{#if !isSame}
 		<time class="text-right">{formatCreatedAt('MMM Do')}</time>
 		<span class="opacity-0 transition-all group-hover:opacity-100"> at </span>
 	{/if}
-	<time class="opacity-0 transition-all group-hover:opacity-100">{formatCreatedAt('HH:mm')}</time>
+	<time class="opacity-100 transition-all group-hover:opacity-100 md:opacity-0"
+		>{formatCreatedAt('HH:mm')}</time
+	>
 </div>
-<div class={cn('col-start-2 col-end-2', 'relative')}>
+<div class={cn('col-span-4 md:col-span-2 md:col-start-2', 'relative')}>
 	<div
 		class={cn(
 			'rounded-md border border-transparent bg-[#262625] px-4 py-2',
@@ -110,7 +118,7 @@
 </div>
 <aside
 	class={cn(
-		'col-start-3 py-2',
+		'col-span-2 row-start-1 justify-self-end py-0 md:col-span-1 md:row-start-auto md:justify-self-auto md:py-2',
 		'w-min',
 		'grid auto-rows-min grid-cols-[repeat(3,_1fr)] items-center gap-1',
 		'text-stone-500 opacity-0 transition-opacity group-hover:opacity-100',
@@ -144,10 +152,6 @@
 			<DeleteIcon />
 		</EntryActionButton>
 	</form>
-
-	<!--EntryActionButton>
-			<RepetitionIcon />
-		</EntryActionButton-->
 </aside>
 
 <style>
