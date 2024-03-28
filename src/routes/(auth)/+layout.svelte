@@ -8,7 +8,7 @@
 		<Logo class="text-primary" />Souvenir
 	</h1>
 
-	<h2 class="mb-8 text-center text-muted">
+	<h2 class="mb-8 text-balance text-center text-muted">
 		One timeline to store your small notes, and remind you of them.
 	</h2>
 
