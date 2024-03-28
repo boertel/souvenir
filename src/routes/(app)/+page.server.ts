@@ -26,8 +26,8 @@ export const load: PageServerLoad = async ({ locals: { user, db } }) => {
 };
 
 export const actions = {
-	task: async ({ request, locals }) => {
-		if (!locals.user?.id) {
+	task: async ({ request, locals: { user, db } }) => {
+		if (!user?.id) {
 			return fail(401);
 		}
 
@@ -40,7 +40,7 @@ export const actions = {
 		}
 
 		const entryId = id as string;
-		const entry = await requireEntry(locals.db, entryId, locals.user.id);
+		const entry = await requireEntry(db, entryId, user.id);
 
 		const content = String(
 			await markdownToAst()
@@ -49,7 +49,7 @@ export const actions = {
 				.process(entry.content)
 		);
 
-		await updateEntry(db, entryId, locals.user.id, { content });
+		await updateEntry(db, entryId, user.id, { content });
 	},
 	pin: async ({ request, locals }) => {
 		if (!locals.user?.id) {
