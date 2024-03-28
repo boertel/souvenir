@@ -3,8 +3,8 @@
 	import { PUBLIC_VERSION } from '$env/static/public';
 </script>
 
-<main class="mx-auto w-full max-w-lg flex-1">
-	<h1 class="mb-4 flex items-center font-title text-8xl tracking-tighter">
+<main class="mx-auto w-full max-w-lg flex-1 px-2">
+	<h1 class="mb-4 flex items-center font-title text-7xl tracking-tighter sm:text-8xl">
 		<Logo class="text-primary" />Souvenir
 	</h1>
 
@@ -15,9 +15,9 @@
 	<slot />
 </main>
 
-<footer class="mx-auto w-full max-w-lg">
-	<ul class="grid grid-cols-[max-content_max-content] gap-x-4 text-xs text-muted">
-		<li>Version <span class="font-mono">{PUBLIC_VERSION}</span></li>
-		<li>built by <a href="https://ben.oertel.fr" target="_blank">Benjamin Oertel</a></li>
-	</ul>
+<footer class="mx-auto w-full max-w-lg px-2 pb-2">
+	<p class="text-xs text-muted">
+		Version <span class="font-mono">{PUBLIC_VERSION.substring(0, 6)}</span>
+		built by <a href="https://ben.oertel.fr" target="_blank">Benjamin Oertel</a> in 2024
+	</p>
 </footer>
