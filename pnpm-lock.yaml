@@ -104,6 +104,9 @@ dependencies:
   remark-stringify:
     specifier: ^11.0.0
     version: 11.0.0
+  supermemo:
+    specifier: ^2.0.17
+    version: 2.0.17
   svelte-codemirror-editor:
     specifier: ^1.2.0
     version: 1.2.0(codemirror@6.0.1)(svelte@4.2.9)
@@ -4893,6 +4896,11 @@ packages:
     dependencies:
       copy-anything: 3.0.5
     dev: true
+
+  /supermemo@2.0.17:
+    resolution: {integrity: sha512-c/BMAkG+IDYtAP1AR97DVU4x4gs8vfvLA4ejND7lHKdzjaAWwxixtcZjnQNfcyAKfZn2ovIYKJAGpTG45dr8ug==}
+    engines: {node: '>=10'}
+    dev: false
 
   /supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}

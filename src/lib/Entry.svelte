@@ -6,12 +6,18 @@
 	import EditIcon from '$icons/EditIcon.svelte';
 	import DeleteIcon from '$icons/DeleteIcon.svelte';
 	import PinIcon from '$icons/PinIcon.svelte';
+	import MoodCryIcon from '$icons/MoodCryIcon.svelte';
 	import { dayjs } from '$lib/dayjs';
 	import EntryActionButton from './EntryActionButton.svelte';
 	import EntryContent from './EntryContent.svelte';
 	import { updateEntry, removeEntry } from '$lib/store';
 	import type { Entry } from './server/db/schema';
 	import MinimizeIcon from '$icons/MinimizeIcon.svelte';
+	import MoodCheckIcon from '$icons/MoodCheckIcon.svelte';
+	import MoodPuzzledIcon from '$icons/MoodPuzzledIcon.svelte';
+	import MoodSickIcon from '$icons/MoodSickIcon.svelte';
+	import type { Dayjs } from 'dayjs';
+	import GradeButton from './GradeButton.svelte';
 
 	function onWindowKeyDown(evt) {
 		if (evt.key === 'Escape' && isEditing) {
@@ -36,14 +42,19 @@
 	export let entry: Entry;
 	export let isSame: boolean;
 	export let isFocus: boolean;
+	export let isReviewable: boolean;
 
 	let isEditing = false;
 	let showChildren = false;
 
-	function formatCreatedAt(format: string): string {
+	function formatCreatedAt(format: string | ((o: Dayjs) => string)): string {
 		// FIXME: use user's timezone
 		let tz = 'America/Los_Angeles';
-		return dayjs.utc(entry.createdAt).tz(tz).format(format);
+		const d = dayjs.utc(entry.createdAt).tz(tz);
+		if (typeof format === 'function') {
+			format = format(d);
+		}
+		return d.format(format);
 	}
 </script>
 
@@ -57,8 +68,10 @@
 	)}
 >
 	{#if !isSame}
-		<time class="text-right">{formatCreatedAt('MMM Do')}</time>
-		<span class="opacity-0 transition-all group-hover:opacity-100"> at </span>
+		<time class="text-right"
+			>{formatCreatedAt((d) => (dayjs().isSame(d, 'year') ? 'MMM Do' : 'MMM Do, YYYY'))}</time
+		>
+		<span class="opacity-100 transition-all group-hover:opacity-100 md:opacity-0"> at </span>
 	{/if}
 	<time class="opacity-100 transition-all group-hover:opacity-100 md:opacity-0"
 		>{formatCreatedAt('HH:mm')}</time
@@ -67,16 +80,11 @@
 <div class={cn('col-span-4 md:col-span-2 md:col-start-2', 'relative')}>
 	<div
 		class={cn(
-			'rounded-md border border-transparent bg-[#262625] px-4 py-2',
+			'rounded-md border border-transparent bg-[#262625] px-4 pt-2',
+			isReviewable ? 'pb-1' : 'pb-2',
 			isFocus && 'border-primary',
 			isEditing && 'border-stone-500'
 		)}
-		role="button"
-		on:click={() => {
-			if (!isEditing) {
-				showChildren = !showChildren;
-			}
-		}}
 	>
 		{#if isEditing}
 			<form
@@ -93,6 +101,31 @@
 			</form>
 		{:else}
 			<EntryContent entryId={entry.id} html={entry.html} />
+		{/if}
+		{#if isReviewable}
+			<form
+				method="POST"
+				use:enhance={({ formData }) => {
+					const grade = formData.get('grade');
+					updateEntry(entry.id, { grade: parseInt(grade, 10) });
+				}}
+				action="?/practice"
+				class="mt-2 grid grid-cols-[min-content_min-content_min-content_min-content] justify-center gap-x-2 border-t border-border pt-1 text-sm"
+			>
+				<input type="hidden" name="id" value={entry.id} />
+				<GradeButton value={0} grade={entry.grade} class="bg-incorrect text-incorrect"
+					><MoodCryIcon /></GradeButton
+				>
+				<GradeButton value={2} grade={entry.grade} class="bg-barely-incorrect text-barely-incorrect"
+					><MoodPuzzledIcon /></GradeButton
+				>
+				<GradeButton value={4} grade={entry.grade} class="bg-barely-correct text-barely-correct"
+					><MoodSickIcon /></GradeButton
+				>
+				<GradeButton value={5} grade={entry.grade} class="bg-correct text-correct"
+					><MoodCheckIcon /></GradeButton
+				>
+			</form>
 		{/if}
 	</div>
 	<ul class={cn('flex flex-col gap-2')}>

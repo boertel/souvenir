@@ -8,6 +8,20 @@
       "when": 1711400812251,
       "tag": "0000_high_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1711587040051,
+      "tag": "0001_cold_odin",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1711833922069,
+      "tag": "0002_brief_rick_jones",
+      "breakpoints": true
     }
   ]
 }

@@ -80,6 +80,7 @@
 		"remark-parse": "^11.0.0",
 		"remark-rehype": "^11.1.0",
 		"remark-stringify": "^11.0.0",
+		"supermemo": "^2.0.17",
 		"svelte-codemirror-editor": "^1.2.0",
 		"tailwind-merge": "^2.2.1",
 		"tailwind-variants": "^0.1.20",

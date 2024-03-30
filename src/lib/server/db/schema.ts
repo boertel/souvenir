@@ -23,6 +23,11 @@ export const entry = sqliteTable('entry', {
 	parentId: text('parent_id'),
 	childId: text('child_id'),
 	content: text('content').notNull(),
+	grade: integer('grade'),
+	repetition: integer('repetition').default(0),
+	interval: integer('interval').default(0),
+	efactor: integer('efactor').default(2.5),
+	reviewAt: integer('review_at'),
 	pinnedAt: integer('pinned_at'),
 	createdAt: integer('created_at')
 		.notNull()

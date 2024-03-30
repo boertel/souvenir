@@ -24,5 +24,5 @@
 	class={className}
 >
 	<input type="hidden" name="id" value={entryId} />
-	<p class="">{@html html}</p>
+	<p class="truncate">{@html html}</p>
 </form>

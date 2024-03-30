@@ -20,6 +20,10 @@ const config = {
 				ring: 'hsl(var(--ring) / <alpha-value>)',
 				background: 'hsl(var(--background) / <alpha-value>)',
 				foreground: 'hsl(var(--foreground) / <alpha-value>)',
+				incorrect: 'hsl(var(--incorrect) / <alpha-value>)',
+				'barely-incorrect': 'hsl(var(--barely-incorrect) / <alpha-value>)',
+				'barely-correct': 'hsl(var(--barely-correct) / <alpha-value>)',
+				correct: 'hsl(var(--correct) / <alpha-value>)',
 				primary: {
 					DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
 					foreground: 'hsl(var(--primary-foreground) / <alpha-value>)'

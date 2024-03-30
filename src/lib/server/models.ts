@@ -1,8 +1,9 @@
 import { nanoid } from 'nanoid';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, sql, desc, asc } from 'drizzle-orm';
 import { schema, type Entry, type NewEntry } from './db/schema';
 import { generateId } from 'lucia';
 import { markdownToHtml } from '$lib/markdown';
+import { supermemo } from 'supermemo';
 
 export async function requireEntry(db, entryId: string, userId: string): Promise<Entry> {
 	const entry = await db.query.entry.findFirst({
@@ -24,15 +25,25 @@ export async function createEntry(
 		id,
 		content,
 		parentId,
-		userId
+		userId,
+		reviewAt: sql`datetime('now', '+7 days')`
 	};
 	const entries = await db.insert(schema.entry).values(data).returning();
 	return entries[0];
 }
 
+export async function findEntriesToReview(db, userId: string): Promise<Entry[]> {
+	const entries = await db.query.entry.findMany({
+		where: and(eq(schema.entry.userId, userId), sql`review_at <= datetime('now')`),
+		orderBy: desc(schema.entry.reviewAt)
+	});
+	return entries;
+}
+
 export async function findEntries(db, userId: string): Promise<Entry[]> {
 	const entriesWithoutHtml = await db.query.entry.findMany({
-		where: and(eq(schema.entry.userId, userId))
+		where: and(eq(schema.entry.userId, userId)),
+		orderBy: asc(schema.entry.createdAt)
 	});
 
 	const promises = entriesWithoutHtml.map(renderHtml);
@@ -90,6 +101,21 @@ export async function updateEntry(
 		.where(and(eq(schema.entry.id, entryId)));
 
 	return newEntry;
+}
+
+export async function practiceEntry(db, entryId: string, userId: string, grade: number) {
+	const entry = await requireEntry(db, entryId, userId);
+	const { interval, repetition, efactor } = supermemo(entry, grade);
+	await db
+		.update(schema.entry)
+		.set({
+			repetition,
+			interval,
+			efactor,
+			grade,
+			reviewAt: sql`datetime('now', '+' || ${interval} || ' days')`
+		})
+		.where(and(eq(schema.entry.id, entryId), eq(schema.entry.userId, userId)));
 }
 
 export async function removeEntry(db, entryId: string, userId: string): Promise<void> {

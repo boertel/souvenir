@@ -9,7 +9,9 @@ import {
 	createEntry,
 	updateEntry,
 	requireEntry,
-	findEntries
+	findEntries,
+	practiceEntry,
+	findEntriesToReview
 } from '$lib/server/models';
 
 export const load: PageServerLoad = async ({ locals: { user, db } }) => {
@@ -17,11 +19,15 @@ export const load: PageServerLoad = async ({ locals: { user, db } }) => {
 		return redirect(302, '/login');
 	}
 
-	const entries = await findEntries(db, user.id);
+	const [entries, entriesToReview] = await Promise.all([
+		findEntries(db, user.id),
+		findEntriesToReview(db, user.id)
+	]);
 
 	return {
 		user,
-		entries
+		entries,
+		entriesToReview
 	};
 };
 
@@ -89,6 +95,20 @@ export const actions = {
 				content
 			});
 		}
+	},
+	practice: async ({ request, locals: { db, user } }) => {
+		if (!user?.id) {
+			return fail(401);
+		}
+
+		const data = await request.formData();
+		const entryId = data.get('id') as string;
+
+		const grade = parseInt(data.get('grade') as string, 10);
+
+		await practiceEntry(db, entryId, user.id, grade);
+
+		return {};
 	},
 	create: async ({ request, locals }) => {
 		if (!locals.user?.id) {
