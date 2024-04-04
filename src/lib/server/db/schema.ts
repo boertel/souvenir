@@ -23,11 +23,10 @@ export const entry = sqliteTable('entry', {
 	parentId: text('parent_id'),
 	childId: text('child_id'),
 	content: text('content').notNull(),
-	grade: integer('grade'),
 	repetition: integer('repetition').default(0),
 	interval: integer('interval').default(0),
 	efactor: integer('efactor').default(2.5),
-	reviewAt: integer('review_at'),
+	nextReviewAt: integer('next_review_at'),
 	pinnedAt: integer('pinned_at'),
 	createdAt: integer('created_at')
 		.notNull()
@@ -40,7 +39,7 @@ export const entry = sqliteTable('entry', {
 export type Entry = typeof entry.$inferSelect & { children?: Entry[]; html?: string }; // return type when queried
 export type NewEntry = typeof entry.$inferInsert; // return type when queried
 
-export const entryRelations = relations(entry, ({ one }) => ({
+export const entryRelations = relations(entry, ({ many, one }) => ({
 	parent: one(entry, {
 		fields: [entry.parentId],
 		references: [entry.id]
@@ -48,17 +47,41 @@ export const entryRelations = relations(entry, ({ one }) => ({
 	child: one(entry, {
 		fields: [entry.childId],
 		references: [entry.id]
+	}),
+	practices: many(practice)
+}));
+
+export const practice = sqliteTable('practice', {
+	id: text('id').notNull().primaryKey(),
+	entryId: text('entry_id').notNull(),
+	grade: integer('grade'),
+	createdAt: integer('created_at')
+		.notNull()
+		.default(sql`(datetime('now'))`),
+	updatedAt: integer('updated_at')
+		.notNull()
+		.default(sql`(datetime('now'))`)
+});
+
+export const practiceRelations = relations(practice, ({ one }) => ({
+	entry: one(entry, {
+		fields: [practice.entryId],
+		references: [entry.id]
 	})
 }));
 
 export const schema = {
 	session,
 	user,
-	entry
+	entry,
+	practice,
+	practiceRelations,
+	entryRelations
 };
 
 export const tables = {
 	session: 'session',
 	user: 'user',
-	entry: 'entry'
+	entry: 'entry',
+	practice: 'practice'
 };

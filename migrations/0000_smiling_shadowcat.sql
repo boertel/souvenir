@@ -4,10 +4,23 @@ CREATE TABLE `entry` (
 	`parent_id` text,
 	`child_id` text,
 	`content` text NOT NULL,
+	`repetition` integer DEFAULT 0,
+	`interval` integer DEFAULT 0,
+	`efactor` integer DEFAULT 2.5,
+	`next_review_at` integer,
 	`pinned_at` integer,
 	`created_at` integer DEFAULT (datetime('now')) NOT NULL,
 	`updated_at` integer DEFAULT (datetime('now')) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `practice` (
+	`id` text PRIMARY KEY NOT NULL,
+	`entry_id` text NOT NULL,
+	`grade` integer,
+	`created_at` integer DEFAULT (datetime('now')) NOT NULL,
+	`updated_at` integer DEFAULT (datetime('now')) NOT NULL,
+	FOREIGN KEY (`entry_id`) REFERENCES `entry`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `session` (

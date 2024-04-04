@@ -26,29 +26,20 @@ export async function createEntry(
 		content,
 		parentId,
 		userId,
-		reviewAt: sql`datetime('now', '+7 days')`
+		nextReviewAt: sql`datetime('now', '+7 days')`
 	};
 	const entries = await db.insert(schema.entry).values(data).returning();
 	return entries[0];
 }
 
-export async function findEntriesToReview(db, userId: string): Promise<Entry[]> {
-	const entries = await db.query.entry.findMany({
-		where: and(eq(schema.entry.userId, userId), sql`review_at <= datetime('now')`),
-		orderBy: desc(schema.entry.reviewAt)
-	});
-	return entries;
-}
-
-export async function findEntries(db, userId: string): Promise<Entry[]> {
-	const entriesWithoutHtml = await db.query.entry.findMany({
-		where: and(eq(schema.entry.userId, userId)),
-		orderBy: asc(schema.entry.createdAt)
-	});
-
+async function generateHtml(entriesWithoutHtml: Entry[]): Promise<Entry[]> {
 	const promises = entriesWithoutHtml.map(renderHtml);
 	const entries = await Promise.all(promises);
 
+	return entries;
+}
+
+async function findChildren(entries: Entry[]): Promise<Entry[]> {
 	const entriesById: Map<string, Entry> = new Map(entries.map((entry) => [entry.id, entry]));
 
 	const entriesWithChildren: Entry[] = [];
@@ -60,6 +51,27 @@ export async function findEntries(db, userId: string): Promise<Entry[]> {
 	});
 
 	return entriesWithChildren;
+}
+
+export async function findEntriesToReview(db, userId: string): Promise<Entry[]> {
+	const entriesWithoutHtml = await db.query.entry.findMany({
+		where: and(eq(schema.entry.userId, userId), sql`next_review_at <= datetime('now')`),
+		orderBy: desc(schema.entry.nextReviewAt),
+		with: { practices: { orderBy: desc(schema.practice.createdAt), limit: 1 } }
+	});
+
+	const entries = await generateHtml(entriesWithoutHtml);
+	return await findChildren(entries);
+}
+
+export async function findEntries(db, userId: string): Promise<Entry[]> {
+	const entriesWithoutHtml = await db.query.entry.findMany({
+		where: and(eq(schema.entry.userId, userId)),
+		orderBy: asc(schema.entry.createdAt)
+	});
+
+	const entries = await generateHtml(entriesWithoutHtml);
+	return await findChildren(entries);
 }
 
 async function renderHtml(entry: Entry): Promise<Entry & { html: string }> {
@@ -106,14 +118,20 @@ export async function updateEntry(
 export async function practiceEntry(db, entryId: string, userId: string, grade: number) {
 	const entry = await requireEntry(db, entryId, userId);
 	const { interval, repetition, efactor } = supermemo(entry, grade);
+
+	await db.insert(schema.practice).values({
+		id: nanoid(),
+		grade,
+		entryId
+	});
+
 	await db
 		.update(schema.entry)
 		.set({
 			repetition,
 			interval,
 			efactor,
-			grade,
-			reviewAt: sql`datetime('now', '+' || ${interval} || ' days')`
+			nextReviewAt: sql`datetime('now', '+' || ${interval} || ' days')`
 		})
 		.where(and(eq(schema.entry.id, entryId), eq(schema.entry.userId, userId)));
 }
@@ -125,7 +143,7 @@ export async function removeEntry(db, entryId: string, userId: string): Promise<
 }
 
 export async function togglePinEntry(db, entryId: string, userId: string): Promise<void> {
-	const entry = await requireEntry(entryId, userId);
+	const entry = await requireEntry(db, entryId, userId);
 
 	const data: { updatedAt: any; pinnedAt?: any } = { updatedAt: sql`datetime('now')` };
 	if (!entry.pinnedAt) {

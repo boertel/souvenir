@@ -6,18 +6,14 @@
 	import EditIcon from '$icons/EditIcon.svelte';
 	import DeleteIcon from '$icons/DeleteIcon.svelte';
 	import PinIcon from '$icons/PinIcon.svelte';
-	import MoodCryIcon from '$icons/MoodCryIcon.svelte';
 	import { dayjs } from '$lib/dayjs';
 	import EntryActionButton from './EntryActionButton.svelte';
 	import EntryContent from './EntryContent.svelte';
 	import { updateEntry, removeEntry } from '$lib/store';
 	import type { Entry } from './server/db/schema';
 	import MinimizeIcon from '$icons/MinimizeIcon.svelte';
-	import MoodCheckIcon from '$icons/MoodCheckIcon.svelte';
-	import MoodPuzzledIcon from '$icons/MoodPuzzledIcon.svelte';
-	import MoodSickIcon from '$icons/MoodSickIcon.svelte';
 	import type { Dayjs } from 'dayjs';
-	import GradeButton from './GradeButton.svelte';
+	import PracticeForm from './PracticeForm.svelte';
 
 	function onWindowKeyDown(evt) {
 		if (evt.key === 'Escape' && isEditing) {
@@ -40,7 +36,7 @@
 	}
 
 	export let entry: Entry;
-	export let isSame: boolean;
+	export let createdOnTheSameDay: boolean;
 	export let isFocus: boolean;
 	export let isReviewable: boolean;
 
@@ -62,12 +58,12 @@
 
 <div
 	class={cn(
-		'font-mono text-xs text-stone-500',
+		'font-mono text-xs text-muted',
 		'col-span-2 row-start-1 py-0 md:col-span-1 md:row-start-auto md:py-2',
 		'text-left md:text-right'
 	)}
 >
-	{#if !isSame}
+	{#if !createdOnTheSameDay}
 		<time class="text-right"
 			>{formatCreatedAt((d) => (dayjs().isSame(d, 'year') ? 'MMM Do' : 'MMM Do, YYYY'))}</time
 		>
@@ -103,29 +99,7 @@
 			<EntryContent entryId={entry.id} html={entry.html} />
 		{/if}
 		{#if isReviewable}
-			<form
-				method="POST"
-				use:enhance={({ formData }) => {
-					const grade = formData.get('grade');
-					updateEntry(entry.id, { grade: parseInt(grade, 10) });
-				}}
-				action="?/practice"
-				class="mt-2 grid grid-cols-[min-content_min-content_min-content_min-content] justify-center gap-x-2 border-t border-border pt-1 text-sm"
-			>
-				<input type="hidden" name="id" value={entry.id} />
-				<GradeButton value={0} grade={entry.grade} class="bg-incorrect text-incorrect"
-					><MoodCryIcon /></GradeButton
-				>
-				<GradeButton value={2} grade={entry.grade} class="bg-barely-incorrect text-barely-incorrect"
-					><MoodPuzzledIcon /></GradeButton
-				>
-				<GradeButton value={4} grade={entry.grade} class="bg-barely-correct text-barely-correct"
-					><MoodSickIcon /></GradeButton
-				>
-				<GradeButton value={5} grade={entry.grade} class="bg-correct text-correct"
-					><MoodCheckIcon /></GradeButton
-				>
-			</form>
+			<PracticeForm entryId={entry.id} />
 		{/if}
 	</div>
 	<ul class={cn('flex flex-col gap-2')}>
@@ -154,7 +128,7 @@
 		'col-span-2 row-start-1 justify-self-end py-0 md:col-span-1 md:row-start-auto md:justify-self-auto md:py-2',
 		'w-min',
 		'grid auto-rows-min grid-cols-[repeat(3,_1fr)] items-center gap-1',
-		'text-stone-500 opacity-0 transition-opacity group-hover:opacity-100',
+		'text-muted opacity-0 transition-opacity group-hover:opacity-100',
 		isEditing && 'opacity-100'
 	)}
 >
@@ -186,38 +160,3 @@
 		</EntryActionButton>
 	</form>
 </aside>
-
-<style>
-	:global(pre) {
-		margin: 0.4em 0;
-		position: relative;
-		z-index: 1;
-	}
-	:global(code) {
-		position: relative;
-		z-index: 1;
-		margin: 0 0.4em;
-		@apply before:absolute before:bottom-[-3px] before:left-[-6px] before:right-[-6px] before:top-[-3px] before:z-[-1] before:rounded-sm before:bg-black before:bg-opacity-80;
-		font-size: 0.75em;
-		white-space: pre;
-	}
-	:global(pre > code) {
-		display: block;
-		position: static;
-	}
-
-	:global(a) {
-		text-decoration: underline;
-	}
-	:global(ol) {
-		list-style: decimal;
-		list-style-position: inside;
-	}
-	:global(blockquote) {
-		@apply my-2 border-l-[3px] border-stone-500 pl-2 text-stone-400;
-	}
-	:global(input[type='checkbox']) {
-		vertical-align: middle;
-		@apply accent-primary;
-	}
-</style>
