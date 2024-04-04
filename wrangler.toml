@@ -1,4 +1,4 @@
 [[d1_databases]]
 binding = "DB" # i.e. available in your Worker on env.DB
 database_name = "souvenir"
-database_id = "af63d6d4-bed1-4437-96ac-17f418ffa5e7"
+database_id = "c5892d06-ea3c-4a27-8246-87ccb3cb8007"
