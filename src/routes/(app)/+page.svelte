@@ -91,8 +91,8 @@
 			use:enhance={({ formData }) => {
 				const newEntry = {
 					id: nanoid(),
-					createdAt: new Date(),
-					updatedAt: new Date(),
+					createdAt: dayjs.utc().format('YYYY-MM-DD HH:mm:ss'),
+					updatedAt: dayjs.utc().format('YYYY-MM-DD HH:mm:ss'),
 					content: formData.get('content')
 				};
 
@@ -108,32 +108,37 @@
 			action="?/create"
 			class={cn('col-span-4 md:col-span-2')}
 		>
-			<div class="min-h-[42px] rounded-md border border-stone-600">
+			<div class="relative min-h-[42px] rounded-md border border-stone-600">
 				<Editor on:keydown={onkeydown} class="px-4 py-2" />
+				<!--div class="absolute bottom-0 right-0 top-0 flex items-center px-4 text-xs text-muted">
+					&#8984; + Enter
+				</div-->
 			</div>
 		</form>
 
 		<div
 			class="col-span-2 row-start-1 flex items-start justify-self-end py-0 md:col-span-1 md:row-start-auto md:justify-self-auto md:py-2"
 		>
-			<Drawer.Root>
-				<Drawer.Trigger class="text-xs text-muted outline-none hover:underline"
-					>{$numberOfEntriesToReview}
-					{$numberOfEntriesToReview === 1 ? 'entry' : 'entries'} to review</Drawer.Trigger
-				>
-				<Drawer.Portal>
-					<Drawer.Overlay class="fixed inset-0 bg-black/40" />
-					<Drawer.Content
-						class="mt-18 fixed bottom-0 left-0 right-0 z-20 mx-2 flex h-[98%] flex-col rounded-t-[10px] bg-background px-2 md:mx-6 md:px-6"
+			{#if $numberOfEntriesToReview > 0}
+				<Drawer.Root>
+					<Drawer.Trigger class="text-xs text-muted outline-none hover:underline"
+						>{$numberOfEntriesToReview}
+						{$numberOfEntriesToReview === 1 ? 'entry' : 'entries'} to review</Drawer.Trigger
 					>
-						<Entries entries={entriesToReview} isReviewable={true} class="h-full" />
-						<div class="sticky bottom-0 left-0 right-0 px-2 py-4 md:px-6">
-							<Drawer.Close>Done</Drawer.Close>
-						</div>
-					</Drawer.Content>
-					<Drawer.Overlay />
-				</Drawer.Portal>
-			</Drawer.Root>
+					<Drawer.Portal>
+						<Drawer.Overlay class="fixed inset-0 bg-black/40" />
+						<Drawer.Content
+							class="mt-18 fixed bottom-0 left-0 right-0 z-20 mx-2 flex h-[98%] flex-col rounded-t-[10px] bg-background px-2 md:mx-6 md:px-6"
+						>
+							<Entries entries={entriesToReview} isReviewable={true} class="h-full" />
+							<div class="sticky bottom-0 left-0 right-0 px-2 py-4 md:px-6">
+								<Drawer.Close>Done</Drawer.Close>
+							</div>
+						</Drawer.Content>
+						<Drawer.Overlay />
+					</Drawer.Portal>
+				</Drawer.Root>
+			{/if}
 		</div>
 	</section>
 </main>

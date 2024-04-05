@@ -13,6 +13,7 @@
 	import type { Entry } from './server/db/schema';
 	import MinimizeIcon from '$icons/MinimizeIcon.svelte';
 	import type { Dayjs } from 'dayjs';
+	import { tick } from 'svelte';
 	import PracticeForm from './PracticeForm.svelte';
 
 	function onWindowKeyDown(evt) {
@@ -143,7 +144,15 @@
 			{#if showChildren}<MinimizeIcon />{:else}<ExpandIcon />{/if}
 		</EntryActionButton>
 	{/if}
-	<EntryActionButton on:click={() => (isEditing = !isEditing)}>
+	<EntryActionButton
+		on:click={async function () {
+			isEditing = !isEditing;
+			if (isEditing) {
+				await tick();
+				form.scrollIntoView();
+			}
+		}}
+	>
 		<EditIcon />
 	</EntryActionButton>
 	<form
