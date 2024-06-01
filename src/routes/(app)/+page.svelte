@@ -142,7 +142,7 @@
 						<Drawer.Content
 							class="mt-18 fixed bottom-0 left-0 right-0 z-20 mx-2 flex h-[98%] flex-col rounded-t-[10px] bg-background px-2 md:mx-6 md:px-6"
 						>
-							<Entries entries={entriesToReview} isReviewable={true} class="h-full" />
+							<Entries entries={entriesToReview} isReviewable={true} class="h-full overflow-auto" />
 							<div class="sticky bottom-0 left-0 right-0 px-2 py-4 md:px-6">
 								<Drawer.Close>Done</Drawer.Close>
 							</div>
