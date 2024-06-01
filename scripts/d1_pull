@@ -1,0 +1,11 @@
+#!/bin/zsh
+
+set -e
+
+DB_NAME="$1"
+
+pnpm wrangler d1 export $DB_NAME --remote --output tmp.sql
+DATABASE_FILE=".wrangler/state/v3/d1/miniflare-D1DatabaseObject/9082a9d104ba00a502103ac0c310570ed44109e898d58fb798273da45673e06e.sqlite"
+rm -rf $DATABASE_FILE
+cat tmp.sql | sqlite3 $DATABASE_FILE
+rm -rf tmp.sql

@@ -26,12 +26,12 @@ export const entry = sqliteTable('entry', {
 	repetition: integer('repetition').default(0),
 	interval: integer('interval').default(0),
 	efactor: integer('efactor').default(2.5),
-	nextReviewAt: integer('next_review_at'),
-	pinnedAt: integer('pinned_at'),
-	createdAt: integer('created_at')
+	nextReviewAt: text('next_review_at'),
+	pinnedAt: text('pinned_at'),
+	createdAt: text('created_at')
 		.notNull()
 		.default(sql`(datetime('now'))`),
-	updatedAt: integer('updated_at')
+	updatedAt: text('updated_at')
 		.notNull()
 		.default(sql`(datetime('now'))`)
 });
@@ -55,10 +55,10 @@ export const practice = sqliteTable('practice', {
 	id: text('id').notNull().primaryKey(),
 	entryId: text('entry_id').notNull(),
 	grade: integer('grade'),
-	createdAt: integer('created_at')
+	createdAt: text('created_at')
 		.notNull()
 		.default(sql`(datetime('now'))`),
-	updatedAt: integer('updated_at')
+	updatedAt: text('updated_at')
 		.notNull()
 		.default(sql`(datetime('now'))`)
 });

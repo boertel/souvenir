@@ -13,7 +13,7 @@
 	import type { Entry } from './server/db/schema';
 	import MinimizeIcon from '$icons/MinimizeIcon.svelte';
 	import type { Dayjs } from 'dayjs';
-	import { tick } from 'svelte';
+	import { afterUpdate, tick } from 'svelte';
 	import PracticeForm from './PracticeForm.svelte';
 
 	function onWindowKeyDown(evt) {
@@ -26,6 +26,13 @@
 	}
 
 	let form: HTMLFormElement;
+	let node: HTMLLIElement;
+
+	afterUpdate(() => {
+		if (isFocus) {
+			node.scrollIntoView();
+		}
+	});
 
 	export function onkeydown(evt: CustomEvent) {
 		const { key, metaKey } = evt.detail;
@@ -56,116 +63,125 @@
 </script>
 
 <svelte:window on:keydown={onWindowKeyDown} />
-
-<div
+<li
+	bind:this={node}
 	class={cn(
-		'font-mono text-xs text-muted',
-		'col-span-2 row-start-1 py-0 md:col-span-1 md:row-start-auto md:py-2',
-		'text-left md:text-right'
+		'group col-span-4 my-2 grid scroll-mt-3 grid-cols-subgrid gap-1 md:gap-2',
+		'first:border-0',
+		'last:mb-2',
+		'border-primary'
 	)}
 >
-	{#if !createdOnTheSameDay}
-		<time class="text-right"
-			>{formatCreatedAt((d) => (dayjs().isSame(d, 'year') ? 'MMM Do' : 'MMM Do, YYYY'))}</time
-		>
-		<span class="opacity-100 transition-all group-hover:opacity-100 md:opacity-0"> at </span>
-	{/if}
-	<time class="opacity-100 transition-all group-hover:opacity-100 md:opacity-0"
-		>{formatCreatedAt('HH:mm')}</time
-	>
-</div>
-<div class={cn('col-span-4 md:col-span-2 md:col-start-2', 'relative')}>
 	<div
 		class={cn(
-			'rounded-md border border-transparent bg-[#262625] px-4 pt-2',
-			isReviewable ? 'pb-1' : 'pb-2',
-			isFocus && 'border-primary',
-			isEditing && 'border-stone-500'
+			'font-mono text-xs text-muted',
+			'col-span-2 row-start-1 py-0 md:col-span-1 md:row-start-auto md:py-2',
+			'text-left md:text-right'
 		)}
 	>
-		{#if isEditing}
-			<form
-				method="POST"
-				action="?/edit"
-				use:enhance={({ formData }) => {
-					updateEntry(entry.id, { content: formData.get('content') });
-				}}
-				bind:this={form}
-				data-sveltekit-noscroll
+		{#if !createdOnTheSameDay}
+			<time class="text-right"
+				>{formatCreatedAt((d) => (dayjs().isSame(d, 'year') ? 'MMM Do' : 'MMM Do, YYYY'))}</time
 			>
-				<input type="hidden" name="id" value={entry.id} />
-				<Editor defaultValue={entry.content} on:keydown={onkeydown} />
-			</form>
-		{:else}
-			<EntryContent entryId={entry.id} html={entry.html} />
+			<span class="opacity-100 transition-all group-hover:opacity-100 md:opacity-0"> at </span>
 		{/if}
-		{#if isReviewable}
-			<PracticeForm entryId={entry.id} />
-		{/if}
+		<time class="opacity-100 transition-all group-hover:opacity-100 md:opacity-0"
+			>{formatCreatedAt('HH:mm')}</time
+		>
 	</div>
-	<ul class={cn('flex flex-col gap-2')}>
-		{#each entry.children || [] as child, idx}
-			<li
-				class={cn(
-					showChildren
-						? 'rounded-md border border-transparent bg-[#262625] px-4 py-2 first:mt-2'
-						: 'absolute inset-0 overflow-hidden rounded-md border border-stone-400 border-opacity-30 bg-[#202020]'
-				)}
-				style={showChildren
-					? `transition-property: transform; transition-duration: .2s; transition-timing-function: ease-in-out;`
-					: `transition-property: transform; transition-duration: .2s; transition-timing-function: ease-in-out; z-index: -${idx + 1}; transform: translateY(${(idx + 1) * 0.3}rem) scale(${1 - (idx + 1) * 0.02});`}
-			>
-				<EntryContent
-					entryId={child.id}
-					html={child.html}
-					class={cn('transition-opacity', showChildren ? 'opacity-100' : 'opacity-0')}
-				/>
-			</li>
-		{/each}
-	</ul>
-</div>
-<aside
-	class={cn(
-		'col-span-2 row-start-1 justify-self-end py-0 md:col-span-1 md:row-start-auto md:justify-self-auto md:py-2',
-		'w-min',
-		'grid auto-rows-min grid-cols-[repeat(3,_1fr)] items-center gap-1',
-		'text-muted opacity-0 transition-opacity group-hover:opacity-100',
-		isEditing && 'opacity-100'
-	)}
->
-	<!--form method="POST" action="?/pin" use:enhance class="flex">
+	<div class={cn('col-span-4 md:col-span-2 md:col-start-2', 'relative')}>
+		<div
+			class={cn(
+				'rounded-md border border-transparent bg-[#262625] px-4 pt-2',
+				isReviewable ? 'pb-1' : 'pb-2',
+				isFocus && 'border-primary',
+				isEditing && 'border-stone-500'
+			)}
+		>
+			{#if isEditing}
+				<form
+					method="POST"
+					action="?/edit"
+					use:enhance={({ formData }) => {
+						updateEntry(entry.id, { content: formData.get('content') });
+					}}
+					bind:this={form}
+					data-sveltekit-noscroll
+				>
+					<input type="hidden" name="id" value={entry.id} />
+					<Editor defaultValue={entry.content} on:keydown={onkeydown} />
+				</form>
+			{:else}
+				<EntryContent entryId={entry.id} html={entry.html} />
+			{/if}
+			{#if isReviewable}
+				<PracticeForm entryId={entry.id} />
+			{/if}
+		</div>
+		<ul class={cn('flex flex-col gap-2')}>
+			{#each entry.children || [] as child, idx}
+				<li
+					class={cn(
+						showChildren
+							? 'rounded-md border border-transparent bg-[#262625] px-4 py-2 first:mt-2'
+							: 'absolute inset-0 overflow-hidden rounded-md border border-stone-400 border-opacity-30 bg-[#202020]'
+					)}
+					style={showChildren
+						? `transition-property: transform; transition-duration: .2s; transition-timing-function: ease-in-out;`
+						: `transition-property: transform; transition-duration: .2s; transition-timing-function: ease-in-out; z-index: -${idx + 1}; transform: translateY(${(idx + 1) * 0.3}rem) scale(${1 - (idx + 1) * 0.02});`}
+				>
+					<EntryContent
+						entryId={child.id}
+						html={child.html}
+						class={cn('transition-opacity', showChildren ? 'opacity-100' : 'opacity-0')}
+					/>
+				</li>
+			{/each}
+		</ul>
+	</div>
+	<aside
+		class={cn(
+			'col-span-2 row-start-1 justify-self-end py-0 md:col-span-1 md:row-start-auto md:justify-self-auto md:py-2',
+			'w-min',
+			'grid auto-rows-min grid-cols-[repeat(3,_1fr)] items-center gap-1',
+			'text-muted opacity-0 transition-opacity group-hover:opacity-100',
+			isEditing && 'opacity-100'
+		)}
+	>
+		<!--form method="POST" action="?/pin" use:enhance class="flex">
 		<input type="hidden" name="id" value={entry.id} />
 		<EntryActionButton>
 			<PinIcon />
 		</EntryActionButton>
 	</form-->
-	{#if entry.children}
-		<EntryActionButton on:click={() => (showChildren = !showChildren)}>
-			{#if showChildren}<MinimizeIcon />{:else}<ExpandIcon />{/if}
+		{#if entry.children}
+			<EntryActionButton on:click={() => (showChildren = !showChildren)}>
+				{#if showChildren}<MinimizeIcon />{:else}<ExpandIcon />{/if}
+			</EntryActionButton>
+		{/if}
+		<EntryActionButton
+			on:click={async function () {
+				isEditing = !isEditing;
+				if (isEditing) {
+					await tick();
+					form.scrollIntoView();
+				}
+			}}
+		>
+			<EditIcon />
 		</EntryActionButton>
-	{/if}
-	<EntryActionButton
-		on:click={async function () {
-			isEditing = !isEditing;
-			if (isEditing) {
-				await tick();
-				form.scrollIntoView();
-			}
-		}}
-	>
-		<EditIcon />
-	</EntryActionButton>
-	<form
-		method="POST"
-		action="?/remove"
-		use:enhance={() => {
-			removeEntry(entry.id);
-		}}
-		class="flex"
-	>
-		<input type="hidden" name="id" value={entry.id} />
-		<EntryActionButton style="--current-color: var(--destructive)">
-			<DeleteIcon />
-		</EntryActionButton>
-	</form>
-</aside>
+		<form
+			method="POST"
+			action="?/remove"
+			use:enhance={() => {
+				removeEntry(entry.id);
+			}}
+			class="flex"
+		>
+			<input type="hidden" name="id" value={entry.id} />
+			<EntryActionButton style="--current-color: var(--destructive)">
+				<DeleteIcon />
+			</EntryActionButton>
+		</form>
+	</aside>
+</li>

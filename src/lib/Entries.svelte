@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { slide } from 'svelte/transition';
 	import { derived } from 'svelte/store';
 	import { cn } from '$lib/utils';
 	import { dayjs } from '$lib/dayjs';
@@ -24,17 +23,7 @@
 				)}
 				{@const isFocus =
 					currentIndex !== null ? idx === $numberOfEntries - currentIndex - 1 : false}
-				<li
-					transition:slide
-					class={cn(
-						'group col-span-4 my-2 grid grid-cols-subgrid gap-1 md:gap-2',
-						'first:border-0',
-						'last:mb-8',
-						'border-primary'
-					)}
-				>
-					<Entry {isReviewable} {entry} {createdOnTheSameDay} {isFocus} />
-				</li>
+				<Entry {isReviewable} {entry} {createdOnTheSameDay} {isFocus} />
 			{/each}
 		</ul>
 	</section>

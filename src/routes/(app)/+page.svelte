@@ -10,11 +10,9 @@
 	import { Drawer } from 'vaul-svelte';
 	import { derived } from 'svelte/store';
 	import { browser } from '$app/environment';
-	import { onMount, beforeUpdate, afterUpdate } from 'svelte';
+	import { onMount, beforeUpdate, afterUpdate, tick } from 'svelte';
 
 	export let data: PageData;
-
-	let autoscroll = true;
 
 	if (browser) {
 		let scrollingElement = document.scrollingElement;
@@ -25,9 +23,13 @@
 			}
 		});
 
-		afterUpdate(() => {
-			if (autoscroll && scrollingElement) {
-				scrollingElement.scrollTo(0, scrollingElement.scrollHeight);
+		afterUpdate(async () => {
+			if (scrollingElement) {
+				scrollingElement.scrollTo({
+					left: 0,
+					top: scrollingElement.scrollHeight,
+					behavior: 'smooth'
+				});
 			}
 		});
 	}
@@ -51,8 +53,10 @@
 			return;
 		}
 		if (['ArrowUp', 'k'].includes(evt.key)) {
+			evt.preventDefault();
 			currentIndex = currentIndex === null ? 0 : Math.min($entries.length - 1, currentIndex + 1);
 		} else if (['ArrowDown', 'j'].includes(evt.key)) {
+			evt.preventDefault();
 			currentIndex = Math.max(0, currentIndex - 1);
 		} else if (evt.key === 'Escape') {
 			currentIndex = null;
