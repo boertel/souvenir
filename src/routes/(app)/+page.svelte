@@ -8,6 +8,7 @@
 	import Editor from '$lib/Editor.svelte';
 	import Entries from '$lib/Entries.svelte';
 	import { Drawer } from 'vaul-svelte';
+	import Now from '$lib/Now.svelte';
 	import { derived } from 'svelte/store';
 	import { browser } from '$app/environment';
 	import { onMount, beforeUpdate, afterUpdate, tick } from 'svelte';
@@ -90,12 +91,12 @@
 			'before:absolute before:bottom-full before:left-0 before:right-0 before:h-[40px] before:bg-gradient-to-t before:from-background before:to-transparent'
 		)}
 	>
-		<time
+		<Now
 			class={cn(
 				'font-mono text-xs text-muted',
 				'col-span-2 row-start-1 flex items-baseline py-0 md:col-span-1 md:row-start-auto md:flex-row-reverse md:py-2'
-			)}>{dayjs().format('ddd, MMM D, HH:mm')}</time
-		>
+			)}
+		/>
 		<form
 			bind:this={form}
 			data-sveltekit-noscroll
