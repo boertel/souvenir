@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	let element: HTMLDivElement;
-	let view: EditorView;
+	export let view: EditorView;
 
 	let className: string = '';
 	export { className as class };
@@ -87,16 +87,6 @@
 
 	onMount(() => (view = createEditorView()));
 	onDestroy(() => view?.destroy());
-
-	/*
-	function onWindowKeyDown(evt) {
-    // FIXME: only for the main form
-		if (evt.key === 'i') {
-			evt.prefentDefault();
-			view.focus();
-		}
-	}
-  */
 </script>
 
 {#if browser}

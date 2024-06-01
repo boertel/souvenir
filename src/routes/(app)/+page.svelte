@@ -11,6 +11,7 @@
 	import { derived } from 'svelte/store';
 	import { browser } from '$app/environment';
 	import { onMount, beforeUpdate, afterUpdate, tick } from 'svelte';
+	import type { EditorView } from '@codemirror/view';
 
 	export let data: PageData;
 
@@ -48,6 +49,8 @@
 
 	let currentIndex: number | null = null;
 
+	let editorView: EditorView;
+
 	export function onWindowKeyDown(evt: KeyboardEvent) {
 		if (evt.target.contentEditable === 'true') {
 			return;
@@ -58,6 +61,10 @@
 		} else if (['ArrowDown', 'j'].includes(evt.key)) {
 			evt.preventDefault();
 			currentIndex = Math.max(0, currentIndex - 1);
+		} else if (evt.key === 'i') {
+			currentIndex = null;
+			evt.preventDefault();
+			editorView.focus();
 		} else if (evt.key === 'Escape') {
 			currentIndex = null;
 		}
@@ -113,7 +120,7 @@
 			class={cn('col-span-4 md:col-span-2')}
 		>
 			<div class="relative min-h-[42px] rounded-md border border-stone-600">
-				<Editor on:keydown={onkeydown} class="px-4 py-2" />
+				<Editor bind:view={editorView} on:keydown={onkeydown} class="px-4 py-2" />
 				<!--div class="absolute bottom-0 right-0 top-0 flex items-center px-4 text-xs text-muted">
 					&#8984; + Enter
 				</div-->
