@@ -3,6 +3,7 @@
 	import { cn } from '$lib/utils';
 	import { dayjs } from '$lib/dayjs';
 	import Entry from '$lib/Entry.svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 
 	export let currentIndex: number | null = null;
 	export let entries;
@@ -11,6 +12,32 @@
 	export { className as class };
 
 	let numberOfEntries = derived(entries, ($entries) => $entries.length);
+	let element: HTMLDivElement;
+
+	let observer: IntersectionObserver | null = null;
+
+	const dispatch = createEventDispatcher();
+	const initialize = () => {
+		observer = new IntersectionObserver((entries) => {
+			entries.forEach(({ isIntersecting }) => {
+				dispatch('intersect', {
+					isIntersecting
+				});
+			});
+		});
+		observer.observe(element);
+	};
+
+	onMount(() => {
+		initialize();
+
+		return () => {
+			if (observer) {
+				observer.disconnect();
+				observer = null;
+			}
+		};
+	});
 </script>
 
 {#if $numberOfEntries > 0}
@@ -26,5 +53,6 @@
 				<Entry {isReviewable} {entry} {createdOnTheSameDay} {isFocus} />
 			{/each}
 		</ul>
+		<div bind:this={element} />
 	</section>
 {/if}

@@ -75,6 +75,8 @@
 		entriesToReview,
 		($entriesToReview) => $entriesToReview.length
 	);
+
+	let showButton = false;
 </script>
 
 <svelte:window on:keydown={onWindowKeyDown} />
@@ -82,7 +84,14 @@
 <main
 	class="mx-auto grid min-h-full w-full max-w-screen-lg flex-1 grid-cols-[1fr_2fr_2fr_1fr] grid-rows-[1fr_min-content] px-2 md:px-6"
 >
-	<Entries {currentIndex} {entries} isReviewable={false} />
+	<Entries
+		{currentIndex}
+		{entries}
+		isReviewable={false}
+		on:intersect={({ detail: { isIntersecting } }) => {
+			showButton = !isIntersecting;
+		}}
+	/>
 
 	<section
 		class={cn(
@@ -121,10 +130,31 @@
 			class={cn('col-span-4 md:col-span-2')}
 		>
 			<div class="relative min-h-[42px] rounded-md border border-stone-600">
+				<div
+					class={cn(
+						'absolute bottom-full left-0 right-0 flex justify-center transition-opacity',
+						showButton ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+					)}
+				>
+					<button
+						type="button"
+						on:click={() => {
+							if (document.scrollingElement) {
+								document.scrollingElement.scrollTo({
+									top: document.scrollingElement.scrollHeight,
+									left: 0,
+									behavior: 'smooth'
+								});
+							}
+						}}
+						class="mb-4 rounded-md bg-primary px-2 py-1 text-xs text-primary-foreground outline outline-1 outline-offset-1 outline-primary/0 transition-all hover:outline-primary/90"
+						>Back to most recent</button
+					>
+				</div>
 				<Editor bind:view={editorView} on:keydown={onkeydown} class="px-4 py-2" />
-				<!--div class="absolute bottom-0 right-0 top-0 flex items-center px-4 text-xs text-muted">
+				<div class="absolute bottom-0 right-0 top-0 flex items-center px-4 text-xs text-muted">
 					&#8984; + Enter
-				</div-->
+				</div>
 			</div>
 		</form>
 
