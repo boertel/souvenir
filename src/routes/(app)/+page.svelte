@@ -11,30 +11,26 @@
 	import Now from '$lib/Now.svelte';
 	import { derived } from 'svelte/store';
 	import { browser } from '$app/environment';
-	import { onMount, beforeUpdate, afterUpdate, tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import type { EditorView } from '@codemirror/view';
 
 	export let data: PageData;
 
-	if (browser) {
-		let scrollingElement = document.scrollingElement;
-
-		onMount(() => {
+	async function scrollToBottom(behavior?: ScrollBehavior) {
+		if (browser) {
+			let scrollingElement = document.scrollingElement;
 			if (scrollingElement) {
-				scrollingElement.scrollTo(0, scrollingElement.scrollHeight);
-			}
-		});
-
-		afterUpdate(async () => {
-			if (scrollingElement) {
+				await tick();
 				scrollingElement.scrollTo({
 					left: 0,
 					top: scrollingElement.scrollHeight,
-					behavior: 'smooth'
+					behavior
 				});
 			}
-		});
+		}
 	}
+
+	onMount(scrollToBottom);
 
 	let form: HTMLFormElement;
 	entries.set(data.entries);
@@ -75,6 +71,8 @@
 		entriesToReview,
 		($entriesToReview) => $entriesToReview.length
 	);
+
+	$: $entries, scrollToBottom('smooth');
 
 	let showButton = false;
 </script>
