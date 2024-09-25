@@ -51,6 +51,10 @@
 	:global(a) {
 		text-decoration: underline;
 	}
+  :global(ul){
+    list-style: disc;
+    list-style-position: inside;
+  }
 	:global(ol) {
 		list-style: decimal;
 		list-style-position: inside;
